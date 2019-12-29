@@ -2,9 +2,9 @@ module FeedModel
 
     open CodeHollow.FeedReader
 
-
+    type URL = URL of string
     type RSSFeedDataSource = 
-        | RSSFeedURL of string
+        | RSSFeedURL of URL
         | RSSFeedString of string
     module RSSFeedDataSource =
         let isRSSFeedURL source = 
@@ -21,9 +21,12 @@ module FeedModel
         feed: Feed
         source: RSSFeedDataSource
         articles: FeedItem seq
+        url: URL
     }
 
-    let getFeedFromUrl url = FeedReader.ReadAsync url |> Async.AwaitTask
+    let getFeedFromUrl urlData = 
+        let (URL url) = urlData
+        FeedReader.ReadAsync url |> Async.AwaitTask
     let getFeedFromString body = async { return FeedReader.ReadFromString body }
 
     let getFeedFromSource source = 
@@ -38,6 +41,7 @@ module FeedModel
                 lastSyncTime = System.DateTime.Now.Ticks
                 source = feedSource
                 feed = feed
+                url = URL feed.Link
                 articles = feed.Items
             }
         }
