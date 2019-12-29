@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <GenerateUserSecretsAttribute>false</GenerateUserSecretsAttribute>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\core.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FeedTest.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="resources\*.rss" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

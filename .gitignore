@@ -1,0 +1,12 @@
+# Autogenenrated Files
+**/bin
+**/obj
+
+# Dev tools
+**/.ionide
+**/.vs
+
+#Paket dependency manager
+.paket/
+paket-files/
+packages/
