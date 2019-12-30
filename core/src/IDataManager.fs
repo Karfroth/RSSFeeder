@@ -1,6 +1,6 @@
 module IDataManager
     type IDataManager<'key> =
-        abstract member Add: FeedModel.FeedData -> 'key
-        abstract member Remove: 'key -> unit
-        abstract member Query: 'key -> FeedModel.FeedData
-        abstract member QueryList: 'key seq -> FeedModel.FeedData seq
+        abstract member Add: FeedModel.FeedData -> Async<'key>
+        abstract member Remove: 'key -> Async<unit>
+        abstract member Query: 'key -> Async<FeedModel.FeedData>
+        abstract member QueryList: 'key seq -> Async<FeedModel.FeedData seq>
