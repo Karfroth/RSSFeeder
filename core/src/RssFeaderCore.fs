@@ -42,10 +42,17 @@
             return Updated msg
         } |!> mailbox.Sender()
 
+    let handleRemoveFeed (dataManager: IDataManager<URL>) (mailbox: Actor<FeedModel.URL>) msg =
+        async {
+            let! _ = dataManager.Remove msg
+            return Removed msg
+        } |!> mailbox.Sender()   
+
     let handleCoreCommand (dataManager: IDataManager<URL>) (mailbox: Actor<CoreActorCommandMsg>) =
         let addSourceActorRef = spawn mailbox "add-source-actor" (actorOf2 handleAddSource)
         let addFeedActorRef = spawn mailbox "add-feed-actor" (actorOf2 (handleAddFeed dataManager))
         let updateFeedActorRef = spawn mailbox "update-feed-actor" (actorOf2 (handleUpdateFeed dataManager))
+        let removeFeedActorRef = spawn mailbox "remove-feed-actor" (actorOf2 (handleRemoveFeed dataManager))
 
         let rec loop() = actor {
             match! mailbox.Receive() with
@@ -70,13 +77,20 @@
                     | _ -> logWarning mailbox "Unexpected respose from UpdateFeedActor"
                 } |> ignore
                 return! loop()
-            | UpdateAll -> 
+            | UpdateAll ->
                 return! loop()
-            | RemoveFeed url -> 
+            | RemoveFeed url ->
+                let sender = mailbox.Sender()
+                async {
+                    let! response = removeFeedActorRef <? url
+                    match response with
+                    | Removed _ -> sender <! response
+                    | _ -> logWarning mailbox "Unexpected response from RemoveFeedActor"
+                } |> ignore
                 return! loop()
             | StartAutoUpdate timeout ->
                 return! loop()
-            | StopAutoUpdate -> 
+            | StopAutoUpdate ->
                 return! loop()
         }
         loop()
