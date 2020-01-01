@@ -78,6 +78,11 @@
                 } |> ignore
                 return! loop()
             | UpdateAll ->
+                let self = mailbox.Self
+                async {
+                    let! keys = dataManager.QueryKeys ()
+                    Seq.iter (fun key -> self <! (UpdateFeed key)) keys
+                } |> ignore
                 return! loop()
             | RemoveFeed url ->
                 let sender = mailbox.Sender()
