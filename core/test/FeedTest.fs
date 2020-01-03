@@ -21,6 +21,5 @@ let tests =
                 FeedModel.getFeedDataAsync (FeedModel.RSSFeedString body)
                 |> Async.RunSynchronously
             Expect.equal feedModel.feed.Title "Typelevel.scala" "feed title should be Typelevel.scala"
-            Expect.equal feedModel.url None "feed url should be null"
-            Expect.isTrue feedModel.fromFile "feed from file should be true"
+            Expect.equal feedModel.url (FeedModel.URL "https://typelevel.org") "feed url should be null"
     ]
