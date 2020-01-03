@@ -99,3 +99,11 @@
                 return! loop()
         }
         loop()
+
+    type CoreFeedManager (dispatcher: FeedModel.FeedData -> unit) =
+        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, FeedModel.FeedData>(dispatcher)
+
+        override this.Add source = ()
+        override this.Remove key = ()
+        override this.Update key = ()
+        override this.UpdateAll () = ()
