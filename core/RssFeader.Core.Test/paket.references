@@ -1,0 +1,8 @@
+FSharp.Core
+group xUnit
+    FsUnit
+    FsUnit.xUnit
+    xunit
+    xunit.runner.visualstudio
+    coverlet.collector
+    Microsoft.NET.Test.Sdk

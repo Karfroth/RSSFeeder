@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RssFeader.Core\RssFeader.Core.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FeedModelTests.fs" />
+    <Compile Include="CoreActorTests.fs" />
+    <EmbeddedResource Include="resources/*.rss" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

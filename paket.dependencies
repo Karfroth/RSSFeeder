@@ -18,3 +18,7 @@ group xUnit
     source https://api.nuget.org/v3/index.json
     nuget FsUnit ~> 3.8
     nuget FsUnit.xUnit ~> 3.8
+    nuget xunit ~> 2.4
+    nuget xunit.runner.visualstudio ~> 2.4
+    nuget coverlet.collector ~> 1.0
+    nuget Microsoft.NET.Test.Sdk ~> 16.3

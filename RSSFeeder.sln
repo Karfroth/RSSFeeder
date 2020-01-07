@@ -5,9 +5,9 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{3611A846-1E8C-4421-B047-45D957372A41}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "core", "core\src\core.fsproj", "{78294E4A-2959-459F-A0D6-69458614D131}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "core", "core\RssFeader.Core\RssFeader.Core.fsproj", "{78294E4A-2959-459F-A0D6-69458614D131}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "core-test", "core\test\core-test.fsproj", "{DA0C74C8-7602-4FCD-A832-52852D1EFA2D}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "core-test", "core\RssFeader.Core.Test\RssFeader.Core.Test.fsproj", "{DA0C74C8-7602-4FCD-A832-52852D1EFA2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
