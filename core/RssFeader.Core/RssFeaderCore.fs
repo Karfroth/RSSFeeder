@@ -11,7 +11,7 @@
 
     type CoreActorCommandMsg = 
         | AddSource of FeedModel.RSSFeedDataSource
-        | AddFeed of FeedModel.FeedData
+        | AddFeed of FeedModel.FeedData * Akka.Actor.IActorRef
         | UpdateFeed of FeedModel.URL
         | UpdateAll
         | RemoveFeed of FeedModel.URL
@@ -19,19 +19,21 @@
         | StopAutoUpdate
 
     type CoreActorEventMsg =
-        | Added of URL 
+        | Added of URL
         | Updated of URL
         | Removed of URL
 
-    let handleAddSource (mailbox: Actor<FeedModel.RSSFeedDataSource>) msg =
+    let handleAddSource (mailbox: Actor<FeedModel.RSSFeedDataSource * Akka.Actor.IActorRef>) msg =
         async {
-            let! feedData = getFeedDataAsync msg
-            return AddFeed feedData
+            let (source, requestor) = msg
+            let! feedData = getFeedDataAsync source
+            return AddFeed (feedData, requestor)
         } |!> mailbox.Sender()
 
     let handleAddFeed (dataManager: IDataManager<URL>) (mailbox: Actor<FeedModel.FeedData>) msg =
         async {
-            let! url = dataManager.Add msg
+            let feedData = msg
+            let! url = dataManager.Add feedData
             return Added url
         } |!> mailbox.Sender()
 
@@ -57,16 +59,15 @@
         let rec loop() = actor {
             match! mailbox.Receive() with
             | AddSource source -> 
-                addSourceActorRef <! source
+                addSourceActorRef <! (source, mailbox.Sender())
                 return! loop()
-            | AddFeed feedData -> 
-                let sender = mailbox.Sender()
+            | AddFeed (feedData, requestor) -> 
                 async {
                     let! response = addFeedActorRef <? feedData
                     match response with
-                    | Added _ -> sender <! response
+                    | Added _ -> requestor <! response
                     | _ -> logWarning mailbox "Unexpected response from AddFeedActor"
-                } |> ignore
+                } |> Async.StartImmediate
                 return! loop()
             | UpdateFeed updateFeed ->
                 let sender = mailbox.Sender()

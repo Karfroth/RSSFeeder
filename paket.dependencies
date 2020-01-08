@@ -9,11 +9,6 @@ group Core
     nuget CodeHollow.FeedReader ~> 1.2
     nuget Akka.FSharp ~> 1.3
 
-group Test
-    source https://api.nuget.org/v3/index.json
-    nuget Expecto ~> 8.13
-    nuget YoloDev.Expecto.TestSdk
-
 group xUnit
     source https://api.nuget.org/v3/index.json
     nuget FsUnit ~> 3.8
@@ -22,3 +17,4 @@ group xUnit
     nuget xunit.runner.visualstudio ~> 2.4
     nuget coverlet.collector ~> 1.0
     nuget Microsoft.NET.Test.Sdk ~> 16.3
+    nuget Akka.TestKit.Xunit2 ~> 1.3
