@@ -8,13 +8,9 @@ type TestDataManager () =
 
     member this.Data = new System.Collections.Generic.Dictionary<string, string>()
 
-    interface IDataManager.IDataManager<FeedModel.URL> with
+    interface IDataManager.IDataManager<FeedModel.URL option> with
 
-        member this.Add data = async {
-            let (FeedModel.URL url) = data.url
-            this.Data.Add(url, url)
-            return data.url 
-        }
+        member this.Add data = async { return data.url }
         member this.Remove key = async { return () }
         member this.Query key = async { return None }
         member this.QueryKeys () = async { return Seq.empty }
@@ -39,7 +35,7 @@ let ``AddSource Works`` () =
     let source = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss") // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.AddSource source, tck.TestActor)
 
-    let expected = RssFeaderCore.Added (FeedModel.URL "https://typelevel.org")
+    let expected = RssFeaderCore.Added (Some (FeedModel.URL "https://typelevel.org/blog/feed.rss"))
 
     tck.ExpectMsg(expected, timeout)
 
@@ -49,6 +45,6 @@ let ``UpdateFeed Works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.UpdateFeed url, tck.TestActor)
 
-    let expected = RssFeaderCore.Updated url
+    let expected = RssFeaderCore.Updated (Some url)
 
     tck.ExpectMsg(expected, timeout)

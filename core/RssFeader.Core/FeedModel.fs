@@ -21,7 +21,7 @@ module FeedModel
         feed: Feed
         source: RSSFeedDataSource
         articles: FeedItem seq
-        url: URL
+        url: URL option
     }
 
     let getFeedFromUrl urlData = 
@@ -37,11 +37,15 @@ module FeedModel
     let getFeedDataAsync feedSource = 
         async {
             let! feed = getFeedFromSource feedSource
+            let url = 
+                match feedSource with
+                | RSSFeedURL u -> Some u
+                | _ -> None
             return {
                 lastSyncTime = System.DateTime.Now.Ticks
                 source = feedSource
                 feed = feed
-                url = URL feed.Link
+                url = url
                 articles = feed.Items
             }
         }

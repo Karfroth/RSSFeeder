@@ -19,9 +19,9 @@
         | StopAutoUpdate
 
     type CoreActorEventMsg =
-        | Added of URL
-        | Updated of URL
-        | Removed of URL
+        | Added of URL option
+        | Updated of URL option
+        | Removed of URL option
 
     let handleAddSource (mailbox: Actor<FeedModel.RSSFeedDataSource * Akka.Actor.IActorRef>) msg =
         async {
@@ -30,27 +30,27 @@
             return AddFeed (feedData, requestor)
         } |!> mailbox.Sender()
 
-    let handleAddFeed (dataManager: IDataManager<URL>) (mailbox: Actor<FeedModel.FeedData>) msg =
+    let handleAddFeed (dataManager: IDataManager<URL option>) (mailbox: Actor<FeedModel.FeedData>) msg =
         async {
             let feedData = msg
             let! url = dataManager.Add feedData
             return Added url
         } |!> mailbox.Sender()
 
-    let handleUpdateFeed (dataManager: IDataManager<URL>) (mailbox: Actor<FeedModel.URL>) msg =
+    let handleUpdateFeed (dataManager: IDataManager<URL option>) (mailbox: Actor<FeedModel.URL>) msg =
         async {
             let! updatedModel = getFeedDataAsync (RSSFeedURL msg)
-            let! _ = dataManager.Update msg updatedModel
-            return Updated msg
+            let! _ = dataManager.Update (Some msg) updatedModel
+            return Updated (Some msg)
         } |!> mailbox.Sender()
 
-    let handleRemoveFeed (dataManager: IDataManager<URL>) (mailbox: Actor<FeedModel.URL>) msg =
+    let handleRemoveFeed (dataManager: IDataManager<URL option>) (mailbox: Actor<FeedModel.URL>) msg =
         async {
-            let! _ = dataManager.Remove msg
-            return Removed msg
+            let! _ = dataManager.Remove (Some msg)
+            return Removed (Some msg)
         } |!> mailbox.Sender()   
 
-    let handleCoreCommand (dataManager: IDataManager<URL>) (mailbox: Actor<CoreActorCommandMsg>) =
+    let handleCoreCommand (dataManager: IDataManager<URL option>) (mailbox: Actor<CoreActorCommandMsg>) =
         let addSourceActorRef = spawn mailbox "add-source-actor" (actorOf2 handleAddSource)
         let addFeedActorRef = spawn mailbox "add-feed-actor" (actorOf2 (handleAddFeed dataManager))
         let updateFeedActorRef = spawn mailbox "update-feed-actor" (actorOf2 (handleUpdateFeed dataManager))
@@ -82,7 +82,11 @@
                 let self = mailbox.Self
                 async {
                     let! keys = dataManager.QueryKeys ()
-                    Seq.iter (fun key -> self <! (UpdateFeed key)) keys
+                    Seq.iter (fun kOption ->
+                        match kOption with
+                        | Some key ->self <! (UpdateFeed key)
+                        | _ -> ignore ()
+                    ) keys
                 } |> ignore
                 return! loop()
             | RemoveFeed url ->
