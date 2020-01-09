@@ -76,7 +76,7 @@
                     match response with 
                     | Updated _ -> sender <! response
                     | _ -> logWarning mailbox "Unexpected respose from UpdateFeedActor"
-                } |> ignore
+                } |> Async.StartImmediate
                 return! loop()
             | UpdateAll ->
                 let self = mailbox.Self

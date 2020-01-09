@@ -26,13 +26,29 @@ let testDataManager = TestDataManager ()
 type CoreActorTest () =
     inherit Akka.TestKit.Xunit2.TestKit()
 
-[<Fact>]
-let ``Add Source Works`` () =
+let timeout = System.Nullable(System.TimeSpan.FromSeconds(20.0)) // TODO: Fix this insane timeout
+
+let before () = 
     let tck = new CoreActorTest ()
     let coreActor = spawn tck.Sys "core-actor" (RssFeaderCore.handleCoreCommand testDataManager)
+    (tck, coreActor)
+
+[<Fact>]
+let ``AddSource Works`` () =
+    let (tck, coreActor) = before()
     let source = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss") // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.AddSource source, tck.TestActor)
 
     let expected = RssFeaderCore.Added (FeedModel.URL "https://typelevel.org")
 
-    tck.ExpectMsg(expected, System.Nullable(System.TimeSpan.FromSeconds(10.0)))
+    tck.ExpectMsg(expected, timeout)
+
+[<Fact>]
+let ``UpdateFeed Works`` () =
+    let (tck, coreActor) = before()
+    let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
+    coreActor.Tell(RssFeaderCore.UpdateFeed url, tck.TestActor)
+
+    let expected = RssFeaderCore.Updated url
+
+    tck.ExpectMsg(expected, timeout)
