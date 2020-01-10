@@ -87,7 +87,7 @@
                         | Some key ->self <! (UpdateFeed key)
                         | _ -> ignore ()
                     ) keys
-                } |> ignore
+                } |> Async.StartImmediate
                 return! loop()
             | RemoveFeed url ->
                 let sender = mailbox.Sender()
@@ -96,7 +96,7 @@
                     match response with
                     | Removed _ -> sender <! response
                     | _ -> logWarning mailbox "Unexpected response from RemoveFeedActor"
-                } |> ignore
+                } |> Async.StartImmediate
                 return! loop()
             | StartAutoUpdate timeout ->
                 return! loop()

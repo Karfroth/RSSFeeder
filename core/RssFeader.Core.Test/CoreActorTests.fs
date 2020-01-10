@@ -48,3 +48,13 @@ let ``UpdateFeed Works`` () =
     let expected = RssFeaderCore.Updated (Some url)
 
     tck.ExpectMsg(expected, timeout)
+
+[<Fact>]
+let ``RemoveFeed Works`` () =
+    let (tck, coreActor) = before()
+    let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
+    coreActor.Tell(RssFeaderCore.RemoveFeed url, tck.TestActor)
+
+    let expected = RssFeaderCore.Removed (Some url)
+
+    tck.ExpectMsg(expected, timeout)
