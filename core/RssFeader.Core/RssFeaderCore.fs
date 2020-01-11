@@ -80,11 +80,16 @@
                 return! loop()
             | UpdateAll ->
                 let self = mailbox.Self
+                let sender = mailbox.Sender()
                 async {
                     let! keys = dataManager.QueryKeys ()
                     Seq.iter (fun kOption ->
                         match kOption with
-                        | Some key ->self <! (UpdateFeed key)
+                        | Some key ->
+                            async {
+                                let! a = self <? (UpdateFeed key)
+                                sender <! a
+                            } |> Async.StartImmediate
                         | _ -> ignore ()
                     ) keys
                 } |> Async.StartImmediate
