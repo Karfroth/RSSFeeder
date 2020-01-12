@@ -104,8 +104,10 @@
                 } |> Async.StartImmediate
                 return! loop()
             | StartAutoUpdate timeout ->
+                logWarning mailbox "StartAutoUpdate is not implemented"
                 return! loop()
             | StopAutoUpdate ->
+                logWarning mailbox "StopAutoUpdate is not implemented"
                 return! loop()
         }
         loop()
