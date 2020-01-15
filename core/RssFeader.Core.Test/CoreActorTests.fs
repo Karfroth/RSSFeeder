@@ -4,9 +4,18 @@ open Xunit
 open FsUnit.Xunit
 open Akka.FSharp
 
-type TestDataManager (actorToReply: Akka.Actor.IActorRef) =
+type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
 
-    member this.Data = new System.Collections.Generic.Dictionary<string, string>()
+    member private this.Data = 
+        if populateData then
+            let (typeLevelURL, typeLevelData) = 
+                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss")
+                (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
+            let (msDevBlogURL, msDevBlogData) = 
+                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage")
+                (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
+            Map.empty.Add(typeLevelURL, typeLevelData).Add(msDevBlogURL, msDevBlogData)
+        else Map.empty        
 
     interface IDataManager.IDataManager<FeedModel.URL option> with
 
@@ -17,30 +26,30 @@ type TestDataManager (actorToReply: Akka.Actor.IActorRef) =
             actorToReply <! "Removed"
             async { return () }
         member this.Query key =
-            async { return None }
+            async { return Map.tryFind key this.Data }
         member this.QueryKeys () =
-            async { return Seq.empty }
+            async { return this.Data |> Map.toSeq |> Seq.map fst }
         member this.Update key data =
             actorToReply <! "Updated"
             async { return () }
         member this.QueryList keys =
-            async { return Seq.empty }
+            async { return Seq.empty }        
 
 type CoreActorTest () =
     inherit Akka.TestKit.Xunit2.TestKit()
 
 let timeout = System.Nullable(System.TimeSpan.FromSeconds(20.0)) // TODO: Fix this insane timeout
 
-let before () = 
+let before populateTestData = 
     let tck = new CoreActorTest ()
     let probe = tck.CreateTestProbe()
-    let testDataManager = TestDataManager (probe)
+    let testDataManager = TestDataManager (populateTestData, probe)
     let coreActor = spawn tck.Sys "core-actor" (RssFeaderCore.handleCoreCommand testDataManager)
     (tck, coreActor, probe)
 
 [<Fact>]
 let ``AddSource Works`` () =
-    let (tck, coreActor, probe) = before()
+    let (tck, coreActor, probe) = before false
     let source = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss") // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.AddSource source, tck.TestActor)
 
@@ -51,7 +60,7 @@ let ``AddSource Works`` () =
 
 [<Fact>]
 let ``UpdateFeed Works`` () =
-    let (tck, coreActor, probe) = before()
+    let (tck, coreActor, probe) = before false
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.UpdateFeed url, tck.TestActor)
 
@@ -61,8 +70,19 @@ let ``UpdateFeed Works`` () =
     tck.ExpectMsg(expected, timeout)
 
 [<Fact>]
+let ``UpdateAll Works`` () =
+    let (tck, coreActor, probe) = before true
+    coreActor.Tell(RssFeaderCore.UpdateAll, tck.TestActor)
+
+    let expected1 = RssFeaderCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"))
+    let expected2 = RssFeaderCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
+
+    probe.ExpectMsgAllOf([|"Updated"; "Updated"|]) |> ignore
+    tck.ExpectMsgAllOf([|expected1; expected2|])
+
+[<Fact>]
 let ``RemoveFeed Works`` () =
-    let (tck, coreActor, probe) = before()
+    let (tck, coreActor, probe) = before false
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeaderCore.RemoveFeed url, tck.TestActor)
 
