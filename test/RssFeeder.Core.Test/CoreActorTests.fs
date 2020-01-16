@@ -44,16 +44,16 @@ let before populateTestData =
     let tck = new CoreActorTest ()
     let probe = tck.CreateTestProbe()
     let testDataManager = TestDataManager (populateTestData, probe)
-    let coreActor = spawn tck.Sys "core-actor" (RssFeaderCore.handleCoreCommand testDataManager)
+    let coreActor = spawn tck.Sys "core-actor" (RssFeederCore.handleCoreCommand testDataManager)
     (tck, coreActor, probe)
 
 [<Fact>]
 let ``AddSource Works`` () =
     let (tck, coreActor, probe) = before false
     let source = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss") // TODO: Make this does not depends on external service
-    coreActor.Tell(RssFeaderCore.AddSource source, tck.TestActor)
+    coreActor.Tell(RssFeederCore.AddSource source, tck.TestActor)
 
-    let expected = RssFeaderCore.Added (Some (FeedModel.URL "https://typelevel.org/blog/feed.rss"))
+    let expected = RssFeederCore.Added (Some (FeedModel.URL "https://typelevel.org/blog/feed.rss"))
 
     probe.ExpectMsg("Added", timeout) |> ignore
     tck.ExpectMsg(expected, timeout)
@@ -62,9 +62,9 @@ let ``AddSource Works`` () =
 let ``UpdateFeed Works`` () =
     let (tck, coreActor, probe) = before false
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    coreActor.Tell(RssFeaderCore.UpdateFeed url, tck.TestActor)
+    coreActor.Tell(RssFeederCore.UpdateFeed url, tck.TestActor)
 
-    let expected = RssFeaderCore.Updated (Some url)
+    let expected = RssFeederCore.Updated (Some url)
 
     probe.ExpectMsg("Updated", timeout) |> ignore
     tck.ExpectMsg(expected, timeout)
@@ -72,10 +72,10 @@ let ``UpdateFeed Works`` () =
 [<Fact>]
 let ``UpdateAll Works`` () =
     let (tck, coreActor, probe) = before true
-    coreActor.Tell(RssFeaderCore.UpdateAll, tck.TestActor)
+    coreActor.Tell(RssFeederCore.UpdateAll, tck.TestActor)
 
-    let expected1 = RssFeaderCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"))
-    let expected2 = RssFeaderCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
+    let expected1 = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"))
+    let expected2 = RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
 
     probe.ExpectMsgAllOf([|"Updated"; "Updated"|]) |> ignore
     tck.ExpectMsgAllOf([|expected1; expected2|])
@@ -84,9 +84,9 @@ let ``UpdateAll Works`` () =
 let ``RemoveFeed Works`` () =
     let (tck, coreActor, probe) = before false
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    coreActor.Tell(RssFeaderCore.RemoveFeed url, tck.TestActor)
+    coreActor.Tell(RssFeederCore.RemoveFeed url, tck.TestActor)
 
     probe.ExpectMsg("Removed", timeout) |> ignore
-    let expected = RssFeaderCore.Removed (Some url)
+    let expected = RssFeederCore.Removed (Some url)
 
     tck.ExpectMsg(expected, timeout)

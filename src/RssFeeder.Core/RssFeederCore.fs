@@ -1,4 +1,4 @@
-﻿module RssFeaderCore
+﻿module RssFeederCore
     
     open IFeedManager
     open FeedModel

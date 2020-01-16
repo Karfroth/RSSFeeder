@@ -6,8 +6,8 @@ open FsUnit.Xunit
 let executingAssembly = System.Reflection.Assembly.GetExecutingAssembly()
 
 let readRSSFromResource rssName = 
-    let asdf = executingAssembly.GetManifestResourceStream("RssFeader.Core.Test.resources." + rssName)
-    let streamReader = new System.IO.StreamReader(asdf)
+    let resource = executingAssembly.GetManifestResourceStream("RssFeeder.Core.Test.resources." + rssName)
+    let streamReader = new System.IO.StreamReader(resource)
     let body = streamReader.ReadToEnd ()
     streamReader.Dispose ()
     body

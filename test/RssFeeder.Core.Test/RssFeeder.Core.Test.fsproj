@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RssFeader.Core\RssFeader.Core.fsproj" />
+    <ProjectReference Include="..\..\src\RssFeeder.Core\RssFeeder.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FeedModelTests.fs" />

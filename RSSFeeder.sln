@@ -5,11 +5,11 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B83D0129-7DCA-4C1C-ADE4-5E6B112984C3}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RssFeader.Core", "src\RssFeader.Core\RssFeader.Core.fsproj", "{796684E7-3616-4CD6-956B-949F166F669C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RssFeeder.Core", "src\RssFeeder.Core\RssFeeder.Core.fsproj", "{796684E7-3616-4CD6-956B-949F166F669C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{CE9DC237-4617-4D46-AA23-17E7D3EDF7DA}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RssFeader.Core.Test", "test\RssFeader.Core.Test\RssFeader.Core.Test.fsproj", "{558EB5C0-FDD9-4919-B3C2-510F6BB86DDA}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RssFeeder.Core.Test", "test\RssFeeder.Core.Test\RssFeeder.Core.Test.fsproj", "{558EB5C0-FDD9-4919-B3C2-510F6BB86DDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
