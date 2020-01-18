@@ -1,5 +1,5 @@
-FSharp.Core
-group xUnit
+group Core
+    FSharp.Core
     FsUnit
     FsUnit.xUnit
     xunit

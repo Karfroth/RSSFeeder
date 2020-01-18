@@ -1,4 +1,4 @@
-FSharp.Core
 group Core
+    FSharp.Core
     CodeHollow.FeedReader
     Akka.FSharp
