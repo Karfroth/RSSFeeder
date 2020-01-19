@@ -11,7 +11,6 @@
 
     type CoreActorCommandMsg = 
         | AddSource of FeedModel.RSSFeedDataSource
-        | AddFeed of FeedModel.FeedData * Akka.Actor.IActorRef
         | UpdateFeed of FeedModel.URL
         | UpdateAll
         | RemoveFeed of FeedModel.URL
@@ -23,11 +22,10 @@
         | Updated of URL option
         | Removed of URL option
 
-    let handleAddSource (mailbox: Actor<FeedModel.RSSFeedDataSource * Akka.Actor.IActorRef>) msg =
+    let handleAddSource (mailbox: Actor<FeedModel.RSSFeedDataSource>) msg =
         async {
-            let (source, requestor) = msg
-            let! feedData = getFeedDataAsync source
-            return AddFeed (feedData, requestor)
+            let! feedData = getFeedDataAsync msg
+            return feedData
         } |!> mailbox.Sender()
 
     let handleAddFeed (dataManager: IDataManager<URL option>) (mailbox: Actor<FeedModel.FeedData>) msg =
@@ -58,14 +56,13 @@
 
         let rec loop() = actor {
             match! mailbox.Receive() with
-            | AddSource source -> 
-                addSourceActorRef <! (source, mailbox.Sender())
-                return! loop()
-            | AddFeed (feedData, requestor) -> 
+            | AddSource source ->
+                let sender = mailbox.Sender()
                 async {
+                    let! feedData = addSourceActorRef <? source
                     let! response = addFeedActorRef <? feedData
                     match response with
-                    | Added _ -> requestor <! response
+                    | Added _ -> sender <! response
                     | _ -> logWarning mailbox "Unexpected response from AddFeedActor"
                 } |> Async.StartImmediate
                 return! loop()
@@ -112,10 +109,10 @@
         }
         loop()
 
-    type CoreFeedManager (datamanager: IDataManager<URL option>, dispatcher: FeedModel.FeedData -> unit) =
+    type CoreFeedManager (dataManager: IDataManager<URL option>, dispatcher: FeedModel.FeedData -> unit) =
         inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, FeedModel.FeedData>(dispatcher)
 
-        member private this.CoreFeedManagerActor = spawn system "CoreFeedManager" (handleCoreCommand datamanager)
+        member private this.CoreFeedManagerActor = spawn system "CoreFeedManager" (handleCoreCommand dataManager)
 
         override this.Add source = this.CoreFeedManagerActor <! (AddSource source)
         override this.Remove key = this.CoreFeedManagerActor <! (RemoveFeed key)
