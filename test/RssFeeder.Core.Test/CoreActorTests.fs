@@ -1,7 +1,6 @@
 module CoreActor
 
 open Xunit
-open FsUnit.Xunit
 open Akka.FSharp
 
 type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
@@ -38,7 +37,8 @@ type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
 type CoreActorTest () =
     inherit Akka.TestKit.Xunit2.TestKit()
 
-let timeout = System.Nullable(System.TimeSpan.FromSeconds(20.0)) // TODO: Fix this insane timeout
+let timeout = System.TimeSpan.FromSeconds(20.0) // TODO: Fix this insane timeout
+let timeoutNullable = System.Nullable(timeout)
 
 let before populateTestData = 
     let tck = new CoreActorTest ()
@@ -55,8 +55,8 @@ let ``AddSource Works`` () =
 
     let expected = RssFeederCore.Added (Some (FeedModel.URL "https://typelevel.org/blog/feed.rss"))
 
-    probe.ExpectMsg("Added", timeout) |> ignore
-    tck.ExpectMsg(expected, timeout)
+    probe.ExpectMsg("Added", timeoutNullable) |> ignore
+    tck.ExpectMsg(expected, timeoutNullable)
 
 [<Fact>]
 let ``UpdateFeed Works`` () =
@@ -66,8 +66,8 @@ let ``UpdateFeed Works`` () =
 
     let expected = RssFeederCore.Updated (Some url)
 
-    probe.ExpectMsg("Updated", timeout) |> ignore
-    tck.ExpectMsg(expected, timeout)
+    probe.ExpectMsg("Updated", timeoutNullable) |> ignore
+    tck.ExpectMsg(expected, timeoutNullable)
 
 [<Fact>]
 let ``UpdateAll Works`` () =
@@ -77,8 +77,8 @@ let ``UpdateAll Works`` () =
     let expected1 = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"))
     let expected2 = RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
 
-    probe.ExpectMsgAllOf([|"Updated"; "Updated"|]) |> ignore
-    tck.ExpectMsgAllOf([|expected1; expected2|])
+    probe.ExpectMsgAllOf(timeout, [|"Updated"; "Updated"|]) |> ignore
+    tck.ExpectMsgAllOf(timeout, [|expected1; expected2|])
 
 [<Fact>]
 let ``RemoveFeed Works`` () =
@@ -86,7 +86,7 @@ let ``RemoveFeed Works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
     coreActor.Tell(RssFeederCore.RemoveFeed url, tck.TestActor)
 
-    probe.ExpectMsg("Removed", timeout) |> ignore
+    probe.ExpectMsg("Removed", timeoutNullable) |> ignore
     let expected = RssFeederCore.Removed (Some url)
 
-    tck.ExpectMsg(expected, timeout)
+    tck.ExpectMsg(expected, timeoutNullable)

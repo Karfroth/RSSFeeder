@@ -1,7 +1,6 @@
 module CoreFeedManager
 
 open Xunit
-open FsUnit.Xunit
 open Akka.FSharp
 
 type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
@@ -38,45 +37,42 @@ type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
 type CoreActorTest () =
     inherit Akka.TestKit.Xunit2.TestKit()
 
-let timeout = System.Nullable(System.TimeSpan.FromSeconds(20.0)) // TODO: Fix this insane timeout
+let timeout = System.TimeSpan.FromSeconds(20.0) // TODO: Fix this insane timeout
+let timeoutNullable = System.Nullable(timeout)
 
-let before populateTestData dispatcher = 
+let before populateTestData = 
     let tck = new CoreActorTest ()
+    let probe = tck.CreateTestProbe()
+    let dispatcher response = probe.TestActor <! response
     let testDataManager = TestDataManager (populateTestData, tck.TestActor)
     let feedManager = RssFeederCore.CoreFeedManager (testDataManager, dispatcher)
-    feedManager
+    (probe, feedManager)
 
 [<Fact>]
 let ``Add works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let dispatcher response =
-        response |> should equal (RssFeederCore.Added (Some url))
-    let feedManager = before false dispatcher
+    let (probe, feedManager) = before false
     feedManager.Add (FeedModel.RSSFeedURL url)
+    probe.ExpectMsg(RssFeederCore.Added (Some url), timeoutNullable)
 
 [<Fact>]
 let ``Remove works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let dispatcher response = 
-        response |> should equal (RssFeederCore.Removed (Some url))
-    let feedManager = before false dispatcher
+    let (probe, feedManager) = before false
     feedManager.Remove url
+    probe.ExpectMsg(RssFeederCore.Removed (Some url), timeoutNullable)
 
 [<Fact>]
 let ``Update works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let dispatcher response = 
-        response |> should equal (RssFeederCore.Updated (Some url))
-    let feedManager = before false dispatcher
+    let (probe, feedManager) = before false
     feedManager.Update url
+    probe.ExpectMsg(RssFeederCore.Updated (Some url), timeoutNullable)
 
 [<Fact>]
 let ``UpdateAll works`` () =
     let url = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss")) // TODO: Make this does not depends on external service
     let url2 =  RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
-    let mutable arr = [|url; url2|]
-    let dispatcher response =
-        Array.contains response arr |> should equal true
-        arr <- Array.filter (fun x -> x <> response) arr
-    let feedManager = before false dispatcher
+    let (probe, feedManager) = before true
     feedManager.UpdateAll ()
+    probe.ExpectMsgAllOf(timeout, [|url; url2|])
