@@ -112,10 +112,12 @@
         }
         loop()
 
-    type CoreFeedManager (dispatcher: FeedModel.FeedData -> unit) =
+    type CoreFeedManager (datamanager: IDataManager<URL option>, dispatcher: FeedModel.FeedData -> unit) =
         inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, FeedModel.FeedData>(dispatcher)
 
-        override this.Add source = ()
-        override this.Remove key = ()
-        override this.Update key = ()
-        override this.UpdateAll () = ()
+        member private this.CoreFeedManagerActor = spawn system "CoreFeedManager" (handleCoreCommand datamanager)
+
+        override this.Add source = this.CoreFeedManagerActor <! (AddSource source)
+        override this.Remove key = this.CoreFeedManagerActor <! (RemoveFeed key)
+        override this.Update key = this.CoreFeedManagerActor <! (UpdateFeed key)
+        override this.UpdateAll () = this.CoreFeedManagerActor <! UpdateAll
