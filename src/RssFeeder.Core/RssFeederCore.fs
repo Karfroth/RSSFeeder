@@ -46,7 +46,7 @@
         async {
             let! _ = dataManager.Remove (Some msg)
             return Removed (Some msg)
-        } |!> mailbox.Sender()   
+        } |!> mailbox.Sender()
 
     let handleCoreCommand (dataManager: IDataManager<URL option>) (mailbox: Actor<CoreActorCommandMsg>) =
         let addSourceActorRef = spawn mailbox "add-source-actor" (actorOf2 handleAddSource)
@@ -109,12 +109,14 @@
         }
         loop()
 
-    type CoreFeedManager (dataManager: IDataManager<URL option>, dispatcher: FeedModel.FeedData -> unit) =
-        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, FeedModel.FeedData>(dispatcher)
+    type CoreFeedManager (dataManager: IDataManager<URL option>, dispatcher: CoreActorEventMsg -> unit) =
+        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, CoreActorEventMsg>(dispatcher)
 
-        member private this.CoreFeedManagerActor = spawn system "CoreFeedManager" (handleCoreCommand dataManager)
+        let randID = System.Random().Next().ToString()
+        member private this.CoreFeedManagerActor = spawn system ("CoreFeedManager" + randID) (handleCoreCommand dataManager)
+        member private this.EventHandler = spawn system ("EventHandler" + randID) (actorOf (fun msg -> dispatcher(msg)))
 
-        override this.Add source = this.CoreFeedManagerActor <! (AddSource source)
-        override this.Remove key = this.CoreFeedManagerActor <! (RemoveFeed key)
-        override this.Update key = this.CoreFeedManagerActor <! (UpdateFeed key)
-        override this.UpdateAll () = this.CoreFeedManagerActor <! UpdateAll
+        override this.Add source = this.CoreFeedManagerActor.Tell ((AddSource source), this.EventHandler)
+        override this.Remove key = this.CoreFeedManagerActor.Tell ((RemoveFeed key), this.EventHandler)
+        override this.Update key = this.CoreFeedManagerActor.Tell ((UpdateFeed key), this.EventHandler)
+        override this.UpdateAll () = this.CoreFeedManagerActor.Tell (UpdateAll, this.EventHandler)

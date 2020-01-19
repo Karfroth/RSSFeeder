@@ -9,6 +9,7 @@
     <Compile Include="FeedModelTests.fs" />
     <Compile Include="CoreActorTests.fs" />
     <EmbeddedResource Include="resources/*.rss" />
+    <Compile Include="CoreFeedManagerTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
