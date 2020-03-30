@@ -7,6 +7,7 @@
     <Compile Include="IDataManager.fs" />
     <Compile Include="IFeedManager.fs" />
     <Compile Include="RssFeederCore.fs" />
+    <Compile Include="InMemoryDataManager.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.FSharp" Version="1.4.3" />
