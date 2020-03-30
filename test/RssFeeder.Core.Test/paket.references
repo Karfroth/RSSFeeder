@@ -1,9 +1,0 @@
-group Core
-    FSharp.Core
-    FsUnit
-    FsUnit.xUnit
-    xunit
-    xunit.runner.visualstudio
-    coverlet.collector
-    Microsoft.NET.Test.Sdk
-    Akka.TestKit.Xunit2
