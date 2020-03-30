@@ -11,8 +11,8 @@ type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
                 let url = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss")
                 (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
             let (msDevBlogURL, msDevBlogData) = 
-                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage")
-                (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
+                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed")
+                (Some(FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
             Map.empty.Add(typeLevelURL, typeLevelData).Add(msDevBlogURL, msDevBlogData)
         else Map.empty        
 
@@ -75,7 +75,7 @@ let ``UpdateAll Works`` () =
     coreActor.Tell(RssFeederCore.UpdateAll, tck.TestActor)
 
     let expected1 = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"))
-    let expected2 = RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
+    let expected2 = RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed"))
 
     probe.ExpectMsgAllOf(timeout, [|"Updated"; "Updated"|]) |> ignore
     tck.ExpectMsgAllOf(timeout, [|expected1; expected2|])

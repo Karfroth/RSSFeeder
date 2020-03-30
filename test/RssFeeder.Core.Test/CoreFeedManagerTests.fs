@@ -11,8 +11,8 @@ type TestDataManager (populateData, actorToReply: Akka.Actor.IActorRef) =
                 let url = FeedModel.RSSFeedURL (FeedModel.URL "https://typelevel.org/blog/feed.rss")
                 (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
             let (msDevBlogURL, msDevBlogData) = 
-                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage")
-                (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
+                let url = FeedModel.RSSFeedURL (FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed")
+                (Some(FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed"), (FeedModel.getFeedDataAsync url) |> Async.RunSynchronously)
             Map.empty.Add(typeLevelURL, typeLevelData).Add(msDevBlogURL, msDevBlogData)
         else Map.empty        
 
@@ -72,7 +72,7 @@ let ``Update works`` () =
 [<Fact>]
 let ``UpdateAll works`` () =
     let url = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss")) // TODO: Make this does not depends on external service
-    let url2 =  RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/feed/landingpage"))
+    let url2 =  RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed"))
     let (probe, feedManager) = before true
     feedManager.UpdateAll ()
     probe.ExpectMsgAllOf(timeout, [|url; url2|])
