@@ -34,15 +34,12 @@ module InMemoryDataManager
                 let newData = Map.add url feedData data
                 return! loop newData
             | QueryList optionalKeys ->
-                let feedDataSeq = seq {
-                    for optionalKey in optionalKeys do
-                        let result = 
-                            match Option.bind (fun k -> Map.tryFind k data) optionalKey with
-                            | Some feedData -> seq { feedData }
-                            | None -> Seq.empty
-                        yield! result
+                sender <! seq { 
+                    for optionalKey in optionalKeys do 
+                        yield! match Option.bind (fun k -> Map.tryFind k data) optionalKey with
+                               | Some feedData -> seq { feedData }
+                               | None -> Seq.empty
                 }
-                sender <! feedDataSeq
                 return! loop data
         }
         loop(Map.empty)
