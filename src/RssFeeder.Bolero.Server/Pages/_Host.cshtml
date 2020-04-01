@@ -1,5 +1,5 @@
 @page "/"
-@namespace RssFeeder.Core.Bolero.Server
+@namespace RssFeeder.Bolero.Server
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model HostModel
 <!DOCTYPE html>
@@ -21,7 +21,7 @@
         </a>
       </div>
     </nav>
-    <div id="main">@(await Html.RenderComponentAsync<RssFeeder.Core.Bolero.Client.Main.MyApp>(Model.IsServer ? RenderMode.ServerPrerendered : RenderMode.Static))</div>
+    <div id="main">@(await Html.RenderComponentAsync<RssFeeder.Bolero.Client.Main.MyApp>(Model.IsServer ? RenderMode.ServerPrerendered : RenderMode.Static))</div>
     <script src="_framework/blazor.@(Model.IsServer ? "server" : "webassembly").js"></script>
   </body>
 </html>

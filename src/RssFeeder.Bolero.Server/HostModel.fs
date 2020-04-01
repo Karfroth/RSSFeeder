@@ -1,4 +1,4 @@
-namespace RssFeeder.Core.Bolero.Server
+namespace RssFeeder.Bolero.Server
 
 open Microsoft.AspNetCore.Mvc.RazorPages
 open Microsoft.Extensions.Hosting

@@ -1,4 +1,4 @@
-module RssFeeder.Core.Bolero.Client.Main
+module RssFeeder.Bolero.Client.Main
 
 open System
 open Elmish

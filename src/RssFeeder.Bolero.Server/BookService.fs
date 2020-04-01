@@ -1,4 +1,4 @@
-namespace RssFeeder.Core.Bolero.Server
+namespace RssFeeder.Bolero.Server
 
 open System
 open System.IO
@@ -6,7 +6,7 @@ open Microsoft.AspNetCore.Hosting
 open Bolero
 open Bolero.Remoting
 open Bolero.Remoting.Server
-open RssFeeder.Core.Bolero
+open RssFeeder.Bolero
 
 type BookService(ctx: IRemoteContext, env: IWebHostEnvironment) =
     inherit RemoteHandler<Client.Main.BookService>()

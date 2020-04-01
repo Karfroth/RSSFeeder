@@ -1,4 +1,4 @@
-namespace RssFeeder.Core.Bolero.Server
+namespace RssFeeder.Bolero.Server
 
 open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Authentication.Cookies
@@ -7,7 +7,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Bolero
 open Bolero.Remoting.Server
-open RssFeeder.Core.Bolero
+open RssFeeder.Bolero
 open Bolero.Templating.Server
 
 type Startup() =
@@ -24,7 +24,7 @@ type Startup() =
                 .Services
             .AddRemoting<BookService>()
 #if DEBUG
-            .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../RssFeeder.Core.Bolero.Client")
+            .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../RssFeeder.Bolero.Client")
 #endif
         |> ignore
 
@@ -35,7 +35,7 @@ type Startup() =
             .UseRemoting()
             .UseStaticFiles()
             .UseRouting()
-            .UseClientSideBlazorFiles<Client.Main.MyApp>()
+            .UseBlazorFrameworkFiles()
             .UseEndpoints(fun endpoints ->
 #if DEBUG
                 endpoints.UseHotReload()
@@ -50,6 +50,7 @@ module Program =
     let main args =
         WebHost
             .CreateDefaultBuilder(args)
+            .UseStaticWebAssets()
             .UseStartup<Startup>()
             .Build()
             .Run()
