@@ -121,14 +121,23 @@
         }
         loop()
 
-    type CoreFeedManager (dataManager: IDataManager<URL option>, dispatcher: CoreActorEventMsg -> unit) =
-        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, CoreActorEventMsg>(dispatcher)
+    type CoreFeedManager<'a> (dataManager: IDataManager<URL option>, box: CoreActorEventMsg -> 'a) =
+        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, 'a>()
 
         let randID = System.Random().Next().ToString()
-        member private this.CoreFeedManagerActor = spawn system ("CoreFeedManager" + randID) (handleCoreCommand dataManager)
-        member private this.EventHandler = spawn system ("EventHandler" + randID) (actorOf (fun msg -> dispatcher(msg)))
+        let respond dispatch resultAsync = 
+            async {
+                let! result = resultAsync
+                result |> box |> dispatch
+            } |> Async.StartImmediate
 
-        override this.Add source = this.CoreFeedManagerActor.Tell ((AddSource source), this.EventHandler)
-        override this.Remove key = this.CoreFeedManagerActor.Tell ((RemoveFeed key), this.EventHandler)
-        override this.Update key = this.CoreFeedManagerActor.Tell ((UpdateFeed key), this.EventHandler)
-        override this.UpdateAll () = this.CoreFeedManagerActor.Tell (UpdateAll, this.EventHandler)
+        member private this.CoreFeedManagerActor = spawn system ("CoreFeedManager" + randID) (handleCoreCommand dataManager)
+
+        override this.Add dispatch source = respond dispatch (this.CoreFeedManagerActor <? (AddSource source))
+        override this.Remove dispatch key = respond dispatch (this.CoreFeedManagerActor <? (RemoveFeed key))
+        override this.Update dispatch key = respond dispatch (this.CoreFeedManagerActor <? (UpdateFeed key))
+        override this.UpdateAll dispatch () = 
+            let now = System.DateTime.Now.Ticks.ToString()
+            let rand = System.Random().Next().ToString()
+            let updateAllHandler = spawn system ("updateAllHandler" + now + rand) (actorOf (box >> dispatch))
+            this.CoreFeedManagerActor.Tell (UpdateAll, updateAllHandler)

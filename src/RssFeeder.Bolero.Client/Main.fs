@@ -4,13 +4,15 @@ open Elmish
 open Bolero
 open Bolero.Html
 open Bolero.Templating.Client
+open RssFeederCore
+open FeedModel
 
-/// Routing endpoints definition.
+let inMemoryDataStorage = InMemoryDataManager.InMemoryDataManager ()
 
 type FeedData = {title: string; url: string}
 
 type Message =
-    | Add of string
+    | CoreMsg of CoreActorEventMsg
     | UpdateURL of string
 
 type Model = {
@@ -18,41 +20,69 @@ type Model = {
     urlInput: string
 }
 
-let initModel = {feeds = Seq.empty; urlInput = ""}
+let feedInfoBox feedData = 
+    div [ attr.``class`` "box"] [
+        div [ attr.``class`` "media"] [
+            div [ attr.``class`` "media-content" ] [
+                div [ attr.``class`` "content"] [ 
+                    strong [] [text feedData.title]
+                    br []
+                    text "Content Placeholder"
+                    br []
+                    time [ attr.datetime "2020-1-1" ] [ text "2020-1-1" ]
+                ]
+            ]
+        ]
+    ]
+
+let init () = {feeds = Seq.empty; urlInput = ""}
+
+let updateModelWithCoreMsg msg model =
+    match msg with
+    | Added (Some (URL url)) -> { 
+        model with
+            urlInput = ""
+            feeds = Seq.append model.feeds [{title = url; url = url}]
+        }
+    | Removed (Some (URL url)) -> { model with feeds = Seq.filter (fun feed -> feed.url <> url) model.feeds }
+    | _ -> model
 
 let update message model =
     match message with
-    | Add url ->
-        printfn "Add URL %s" url 
-        { 
-            model with
-                feeds = Seq.append model.feeds [{title = String.concat "-" ["Title"; url]; url = url}];
-                urlInput = ""
-        }
-    | UpdateURL updatedURL-> { model with urlInput = updatedURL }    
+    | UpdateURL updatedURL-> { model with urlInput = updatedURL }
+    | CoreMsg msg -> updateModelWithCoreMsg msg model
 
-let view model dispatch =
+let view (coreActor: CoreFeedManager<Message>) model dispatch =
     div [] [
-        input [
-            attr.value model.urlInput
-            on.change (fun e -> (dispatch << UpdateURL << unbox) e.Value)
+        div [
+            attr.``class`` "column is-one-quarter has-background-primary"
+            attr.style "height: 100vh;"
+        ] [
+            input [
+                attr.``type`` "text"
+                attr.value model.urlInput
+                on.change (fun e -> (dispatch << UpdateURL << unbox) e.Value)
+            ]
+            button [
+                on.click (fun _ -> 
+                    printfn "urlInput is %s" model.urlInput
+                    coreActor.Add dispatch (RSSFeedURL (URL model.urlInput))
+                )
+            ] [text "add"]
+            forEach model.feeds feedInfoBox
         ]
-        button [
-            on.click (fun _ -> 
-                printfn "urlInput is %s" model.urlInput
-                dispatch (Add model.urlInput)
-            )
-        ] [text "add"]
-        forEach model.feeds (fun m -> 
-            text m.title
-        )
+        div [
+            attr.``class`` "column"
+        ] []
     ]
 
 type MyApp() =
     inherit ProgramComponent<Model, Message>()
 
-    override this.Program =
-        Program.mkSimple (fun _ -> initModel) update view
+    let coreActor = CoreFeedManager(inMemoryDataStorage, CoreMsg)
+
+    override this.Program = 
+        Program.mkSimple (fun _ -> init ()) update (view coreActor)
 #if DEBUG
         |> Program.withHotReload
 #endif

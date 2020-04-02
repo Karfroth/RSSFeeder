@@ -43,36 +43,36 @@ let timeoutNullable = System.Nullable(timeout)
 let before populateTestData = 
     let tck = new CoreActorTest ()
     let probe = tck.CreateTestProbe()
-    let dispatcher response = probe.TestActor <! response
+    let dispatch response = probe.TestActor <! response
     let testDataManager = TestDataManager (populateTestData, tck.TestActor)
-    let feedManager = RssFeederCore.CoreFeedManager (testDataManager, dispatcher)
-    (probe, feedManager)
+    let feedManager = RssFeederCore.CoreFeedManager (testDataManager, id)
+    (probe, feedManager, dispatch)
 
 [<Fact>]
 let ``Add works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let (probe, feedManager) = before false
-    feedManager.Add (FeedModel.RSSFeedURL url)
+    let (probe, feedManager, dispatch) = before false
+    feedManager.Add dispatch (FeedModel.RSSFeedURL url)
     probe.ExpectMsg(RssFeederCore.Added (Some url), timeoutNullable)
 
 [<Fact>]
 let ``Remove works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let (probe, feedManager) = before false
-    feedManager.Remove url
+    let (probe, feedManager, dispatch) = before false
+    feedManager.Remove dispatch url
     probe.ExpectMsg(RssFeederCore.Removed (Some url), timeoutNullable)
 
 [<Fact>]
 let ``Update works`` () =
     let url = FeedModel.URL "https://typelevel.org/blog/feed.rss" // TODO: Make this does not depends on external service
-    let (probe, feedManager) = before false
-    feedManager.Update url
+    let (probe, feedManager, dispatch) = before false
+    feedManager.Update dispatch url
     probe.ExpectMsg(RssFeederCore.Updated (Some url), timeoutNullable)
 
 [<Fact>]
 let ``UpdateAll works`` () =
     let url = RssFeederCore.Updated (Some(FeedModel.URL "https://typelevel.org/blog/feed.rss")) // TODO: Make this does not depends on external service
     let url2 =  RssFeederCore.Updated (Some(FeedModel.URL "https://devblogs.microsoft.com/dotnet/feed"))
-    let (probe, feedManager) = before true
-    feedManager.UpdateAll ()
+    let (probe, feedManager, dispatch) = before true
+    feedManager.UpdateAll dispatch ()
     probe.ExpectMsgAllOf(timeout, [|url; url2|])

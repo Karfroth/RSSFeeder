@@ -1,70 +1,58 @@
 module InMemoryDataManager
     open IDataManager
     open FeedModel
-    open Akka.FSharp
+    open Shielded
 
-    type InMemoryDataHanlderMsg = 
-        | Add of FeedData
-        | Remove of URL
-        | Query of URL
-        | QueryKeys
-        | Update of URL * FeedData
-        | QueryList of URL option seq
+    type InMemoryDataManager () =
 
-    let handleInMemoryData (mailbox: Actor<InMemoryDataHanlderMsg>) =
-        let rec loop(data: Map<URL, FeedData>) = actor {
-            let sender = mailbox.Sender ()
-            match! mailbox.Receive() with
-            | Add feedData ->
-                let newData = 
-                    match feedData.url with
-                    | Some url -> Map.add url feedData data
-                    | None -> data
-                return! loop newData
-            | Remove key ->
-                return! loop (Map.remove key data)
-            | Query key ->
-                sender <! Map.tryFind key data
-                return! loop data
-            | QueryKeys ->
-                let keys = Seq.map (fun (k, _) -> k) (Map.toSeq data)
-                sender <! keys
-                return! loop data
-            | Update (url, feedData) ->
-                let newData = Map.add url feedData data
-                return! loop newData
-            | QueryList optionalKeys ->
-                sender <! seq { 
-                    for optionalKey in optionalKeys do 
-                        yield! match Option.bind (fun k -> Map.tryFind k data) optionalKey with
-                               | Some feedData -> seq { feedData }
-                               | None -> Seq.empty
-                }
-                return! loop data
-        }
-        loop(Map.empty)
-
-    type InMemoryDataManager<'a> (parentActor: Actor<'a>, actorIDOpt: string option) =
-
-        let actorID =
-            match actorIDOpt with
-            | Some id -> id
-            | None -> System.Random().Next().ToString()
-        let inMemoryDataActor = spawn parentActor actorID handleInMemoryData
+        let shielded = Shielded<Map<URL, FeedData>>()
 
         interface IDataManager<URL option> with
-            member this.Add feedData = inMemoryDataActor <? (Add feedData)
+            member this.Add feedData = 
+                async {
+                    let oldMap = shielded.Value;
+                    Shield.InTransaction(System.Action(fun _ ->
+                        match feedData.url with
+                        | Some url -> shielded.Value <- Map.add url feedData oldMap
+                        | _ -> ()
+                    ))
+                    return feedData.url
+                }
             member this.Remove key =
                 match key with
-                | Some k -> inMemoryDataActor <? (Remove k)
+                | Some k ->
+                    async {
+                        let oldMap = shielded.Value;
+                        Shield.InTransaction(System.Action(fun _ ->
+                            shielded.Value <- Map.remove k oldMap
+                        ))
+                    }
                 | None -> async { return () }
             member this.Query key =
                 match key with
-                | Some k -> inMemoryDataActor <? (Query k)
+                | Some k -> async { return Map.tryFind k shielded.Value }
                 | None -> async { return None }
-            member this.QueryKeys () = inMemoryDataActor <? QueryKeys
+            member this.QueryKeys () =
+                async { return Seq.map (fun (k, _) -> Some k) (Map.toSeq shielded.Value) }
             member this.Update key feedData =
                 match key with
-                | Some k -> inMemoryDataActor <? (Update (k, feedData))
+                | Some k ->
+                    async {
+                        let oldMap = shielded.Value;
+                        Shield.InTransaction(System.Action(fun _ ->
+                            match feedData.url with
+                            | Some url -> shielded.Value <- Map.add url feedData oldMap
+                            | _ -> ()
+                        ))
+                    }
                 | None -> async { return () }
-            member this.QueryList keys = inMemoryDataActor <? (QueryList keys)
+            member this.QueryList keys = 
+                async {
+                    return seq {
+                        for key in keys do
+                            yield!
+                                match Option.bind(fun k -> Map.tryFind k shielded.Value) key with
+                                | Some feedData -> [feedData]
+                                | None -> []                           
+                    }
+                }
