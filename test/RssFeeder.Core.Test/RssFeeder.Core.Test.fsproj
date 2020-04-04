@@ -7,12 +7,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FeedModelTests.fs" />
-    <Compile Include="CoreActorTests.fs" />
     <EmbeddedResource Include="resources/*.rss" />
     <Compile Include="CoreFeedManagerTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.3" />
     <PackageReference Include="coverlet.collector" Version="1.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

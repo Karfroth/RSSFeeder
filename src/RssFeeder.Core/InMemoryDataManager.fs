@@ -1,7 +1,6 @@
 module InMemoryDataManager
     open IDataManager
     open FeedModel
-    open Shielded
     
     type InMemoryDataManagerCmd =
     | Add of FeedData * AsyncReplyChannel<URL option>
@@ -18,11 +17,8 @@ module InMemoryDataManager
                 async { 
                     match! inbox.Receive() with
                     | Add (feedData, replyChannel) ->
-                        let newData = 
-                            match feedData.url with
-                            | Some url -> Map.add url feedData data
-                            | _ -> data
-                        replyChannel.Reply feedData.url
+                        let newData = Map.add feedData.url feedData data
+                        replyChannel.Reply (Some feedData.url)
                         return! loop newData                        
                     | Remove (url, replyChannel) ->
                         let newData = Map.remove url data

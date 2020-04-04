@@ -1,76 +1,39 @@
 module FeedModel
 
-    open CodeHollow.FeedReader
+    open System.ServiceModel.Syndication
 
     type URL = URL of string
-    type RSSFeedDataSource = 
-        | RSSFeedURL of URL
-        | RSSFeedString of {|url: string; body: string|}
-    module RSSFeedDataSource =
-        let isRSSFeedURL source = 
-            match source with
-            | RSSFeedURL _ -> true
-            | _ -> false
-        let isRSSFeedString source = 
-            match source with
-            | RSSFeedString _ -> true
-            | _ -> false
+    type RSSFeedDataSource = {|url: string; body: string|}
+
+    type FeedItem = {title: string; summary: string; authors: string seq; date: string; links: URL seq}
 
     type FeedData = { 
         lastSyncTime: int64
-        // feed: Feed
-        // source: RSSFeedDataSource
+        feedName: string
         articles: FeedItem seq
-        url: URL option
+        url: URL
     }
 
-    let a = Microsoft.Toolkit.Parsers.Rss.RssParser()
-    let b = a.Parse("")
-    let d = seq {
-        use en = b.GetEnumerator()
-        let rec loop () = seq {
-            if en.MoveNext() then 
-                yield en.Current
-                yield! loop () }
-        yield! loop () 
-    }
-
-    let getFeedFromUrl urlData = 
-        let (URL url) = urlData
-        FeedReader.ReadAsync url |> Async.AwaitTask
-    let getFeedFromString body = 
-        async { return FeedReader.ReadFromString body }
-
-    let getFeedFromSource source = 
-        match source with
-        | RSSFeedURL url -> getFeedFromUrl url
-        | RSSFeedString body -> getFeedFromString body.body
-
-    let getFeedDataAsync feedSource = 
+    let getFeedDataAsync (feedSource: RSSFeedDataSource) = 
         async {
-            match feedSource with
-            | RSSFeedURL _ ->
-                let! feed = getFeedFromSource feedSource
-                let url = 
-                    match feedSource with
-                    | RSSFeedURL u -> Some u
-                    | _ -> Some (URL feed.Link)
-                return {
-                    lastSyncTime = System.DateTime.Now.Ticks
-                    // source = feedSource
-                    // feed = feed
-                    url = url
-                    articles = feed.Items
+            let stringReader = new System.IO.StringReader(feedSource.body)
+            let xmlReader = System.Xml.XmlReader.Create(stringReader)
+            let syndication = SyndicationFeed.Load(xmlReader)
+            let articles = 
+                seq {
+                    for item in syndication.Items do
+                        yield {
+                            title = item.Title.Text
+                            summary = item.Summary.Text
+                            authors = Seq.map (fun (x: SyndicationPerson) -> x.Name) item.Authors
+                            date = item.LastUpdatedTime.Ticks.ToString()
+                            links = Seq.map (fun (x: SyndicationLink) -> URL (x.Uri.ToString ())) item.Links
+                        }
                 }
-            | RSSFeedString body ->
-                let stringReader = new System.IO.StringReader(body.body)
-                let xmlReader = System.Xml.XmlReader.Create(stringReader)
-                let syndication = System.ServiceModel.Syndication.SyndicationFeed.Load(xmlReader)
-                return {
-                    lastSyncTime = System.DateTime.Now.Ticks
-                    // source = feedSource
-                    // feed = Seq.empty<FeedItem>
-                    url = (Some << URL) (body.url)
-                    articles = Seq.empty
-                }
+            return {
+                lastSyncTime = System.DateTime.Now.Ticks
+                feedName = syndication.Title.Text
+                url = URL feedSource.url
+                articles = articles
+            }
         }

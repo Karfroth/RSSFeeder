@@ -58,14 +58,7 @@ let update message model =
     | CoreMsg msg -> updateModelWithCoreMsg msg model
     | FeedString str -> { model with feedString = str }
 
-let view (coreActor: CoreFeedManager2<Message>) model dispatch =
-    let testHelper () = async {
-        let httpClient = new HttpClient()
-        let typelevelFeedTask = httpClient.GetAsync "https://typelevel.org/blog/feed.rss"
-        let! response = Async.AwaitTask typelevelFeedTask
-        let! feedString = Async.AwaitTask (response.Content.ReadAsStringAsync ())
-        coreActor.Add dispatch (RSSFeedString {|url = "https://typelevel.org/blog/feed.rss"; body = feedString|})
-    }
+let view (feedManager: CoreFeedManager<Message>) model dispatch =
     div [] [
         div [
             attr.``class`` "column is-one-quarter has-background-primary"
@@ -78,7 +71,8 @@ let view (coreActor: CoreFeedManager2<Message>) model dispatch =
             ]
             button [
                 on.click (fun _ -> 
-                    testHelper () |> Async.StartImmediate
+                    feedManager.Add dispatch (URL model.urlInput)
+                    (dispatch << UpdateURL << unbox) "" 
                 )
             ] [text "add"]
             forEach model.feeds feedInfoBox
@@ -90,19 +84,18 @@ let view (coreActor: CoreFeedManager2<Message>) model dispatch =
 
 let initProgram () =
     let httpClient = new HttpClient()
-    let coreActor = CoreFeedManager2(inMemoryDataStorage, CoreMsg)
-    let sub model = 
-        let readTypeLevel dispatch =
-            async {
-                let typelevelFeedTask = httpClient.GetAsync "https://typelevel.org/blog/feed.rss"
-                let! response = Async.AwaitTask typelevelFeedTask
-                let! feedString = Async.AwaitTask (response.Content.ReadAsStringAsync ())
-                (dispatch << FeedString) feedString
-                coreActor.Add dispatch (RSSFeedString {|url = "https://typelevel.org/blog/feed.rss"; body = feedString|})
-            } |> Async.StartImmediate
-        Cmd.ofSub readTypeLevel
-    Program.mkSimple (fun _ -> init ()) update (view coreActor)
-    |> Program.withSubscription sub
+    let receiveFeed (targetURL: URL) =
+        let (URL url) = targetURL
+        async {
+            let feedTask = httpClient.GetAsync url
+            let! response = Async.AwaitTask feedTask
+            let! feedString = Async.AwaitTask (response.Content.ReadAsStringAsync ())
+            let result: RSSFeedDataSource = {| url = url; body = feedString |}
+            return result
+        }
+
+    let feedManager = CoreFeedManager(receiveFeed, inMemoryDataStorage, CoreMsg)
+    Program.mkSimple (fun _ -> init ()) update (view feedManager)
 
 type MyApp() =
     inherit ProgramComponent<Model, Message>()
