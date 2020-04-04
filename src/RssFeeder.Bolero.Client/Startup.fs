@@ -1,6 +1,7 @@
 namespace RssFeeder.Bolero.Client
 
 open Microsoft.AspNetCore.Components.WebAssembly.Hosting
+open Microsoft.Extensions.DependencyInjection
 open Bolero.Remoting.Client
 
 module Program =

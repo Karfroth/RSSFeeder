@@ -13,5 +13,7 @@
     <PackageReference Include="Akka.FSharp" Version="1.4.3" />
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="Shielded" Version="4.4.8" />
+    <PackageReference Include="Microsoft.Toolkit.Parsers" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="4.7.0" />
   </ItemGroup>
 </Project>

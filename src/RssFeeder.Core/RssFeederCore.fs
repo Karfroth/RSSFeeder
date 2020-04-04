@@ -141,3 +141,39 @@
             let rand = System.Random().Next().ToString()
             let updateAllHandler = spawn system ("updateAllHandler" + now + rand) (actorOf (box >> dispatch))
             this.CoreFeedManagerActor.Tell (UpdateAll, updateAllHandler)
+
+    type CoreFeedManager2<'a> (dataManager: IDataManager<URL option>, box: CoreActorEventMsg -> 'a) =
+        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, 'a>()
+
+        override this.Add dispatch source =
+            async {
+                match source with
+                | RSSFeedURL (URL url) -> 
+                    let! feedData = getFeedDataAsync source
+                    let! result = dataManager.Add feedData
+                    (Added result) |> box |> dispatch
+                | RSSFeedString body ->
+                    let stringReader = new System.IO.StringReader(body.body)
+                    let xmlReader = System.Xml.XmlReader.Create(stringReader)
+                    let syndication = System.ServiceModel.Syndication.SyndicationFeed.Load(xmlReader)
+                    let lastSyncTime = 0L
+                    let url = (Some << URL) (body.url)
+                    let feedData =  {
+                        lastSyncTime = lastSyncTime
+                        // source = RSSFeedString body
+                        // feed = Seq.empty<FeedItem>
+                        url = url
+                        articles = Seq.empty
+                    }
+                    let! result = dataManager.Add feedData
+                    (Added result) |> box |> dispatch
+            } |> Async.StartImmediate
+        override this.Remove dispatch key =
+            async {
+                do! dataManager.Remove (Some key)
+                (Removed (Some key)) |> box |> dispatch
+            } |> Async.StartImmediate
+        override this.Update dispatch key =
+            async { return () } |> ignore
+        override this.UpdateAll dispatch () = 
+            async { return () } |> ignore
