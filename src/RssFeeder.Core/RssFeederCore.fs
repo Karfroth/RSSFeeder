@@ -14,7 +14,7 @@
         | StopAutoUpdate
 
     type CoreActorEventMsg =
-        | Added of URL option
+        | Added of (URL option * string)
         | Updated of URL option
         | Removed of URL option
 
@@ -28,7 +28,7 @@
                 let! dataSource = receiveFeed url
                 let! feedData = getFeedDataAsync dataSource
                 let! result = dataManager.Add feedData
-                (Added result) |> box |> dispatch
+                (Added (result, feedData.feedName)) |> box |> dispatch
             } |> Async.StartImmediate
         override this.Remove dispatch key =
             async {
