@@ -50,43 +50,85 @@ module App =
         | FeedString str -> { model with feedString = str }
         | SetCurrentFeed feedData -> {model with currentFeed = feedData}
     
+    let feedsPage feeds = 
+        View.ContentPage(
+            content= View.StackLayout(
+                padding = Thickness 10.0,
+                children =
+                    match feeds with
+                    | Some currentFeed ->
+                        List.map (fun (x: FeedModel.FeedItem) -> View.Label x.title) (Seq.toList currentFeed.articles)
+                    | None -> []
+            )
+        )
+
+    let feedDetailPage (currentFeed: FeedData option) = 
+        let title = Option.defaultValue "RSSFeeder" (Option.map (fun x -> x.feedName) currentFeed)
+        let items = 
+            match currentFeed with
+                | Some currentFeed ->
+                    List.map (fun (x: FeedModel.FeedItem) -> 
+                        View.ViewCell(
+                            view = View.StackLayout(
+                                children = [
+                                    View.Label(text = x.title, isVisible = true, textColor=Color.Accent, lineBreakMode=LineBreakMode.TailTruncation)
+                                    View.Label(text = x.summary, lineBreakMode = LineBreakMode.TailTruncation, maxLines = 3)
+                                ],
+                                margin = Thickness 10.0
+                            )
+                        )
+                    ) (Seq.toList currentFeed.articles)
+                | None -> []
+        View.NavigationPage(
+            pages=[
+                View.ContentPage(
+                    title = title,
+                    content = View.StackLayout(
+                        padding = Thickness 10.0,
+                        children = [
+                            View.ListView(
+                                rowHeight = 100,
+                                items = items
+                            )
+                        ]
+                    )
+                )
+            ]
+        )
+
     let view (feedManager: CoreFeedManager<Message>) model dispatch =
         let addFeed _ =
              feedManager.Add dispatch (URL model.urlInput)
              (dispatch << UpdateURL) ""
-        View.ContentPage(
-            content=View.StackLayout(
-                padding=Thickness 20.0,
-                children = [
-                  View.Entry(
-                      text = "url",
-                      textChanged = (fun t -> (dispatch << UpdateURL) t.NewTextValue),
-                      completed = (addFeed)
-                  )
-                  View.ListView(
-                      items = List.map (fun x -> View.TextCell x.title) (Seq.toList model.feeds),
-                      itemSelected = (fun idx ->
-                          match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
-                          | Some item ->
-                              async {
-                                  let! feedData = item.url |> URL |> Some |> inMemoryDataStorage.Query
-                                  do feedData |> SetCurrentFeed |> dispatch
-                              } |> Async.StartImmediate
-                          | _ -> ()
-                      )
-                  )
-                  View.StackLayout(
-                      padding = Thickness 10.0,
-                      children =
-                          match model.currentFeed with
-                          | Some currentFeed ->
-                              List.map (fun (x: FeedModel.FeedItem) -> View.Label x.title) (Seq.toList currentFeed.articles)
-                          | None -> []
-                  )
-                ]
-              )
+        View.MasterDetailPage(
+            masterBehavior = MasterBehavior.Default,
+            master = View.ContentPage(
+                title = "Master Title",
+                useSafeArea = true,
+                content = View.StackLayout(
+                    children=[
+                        View.Entry(
+                            text = model.urlInput,
+                            textChanged = (fun t -> (dispatch << UpdateURL) t.NewTextValue),
+                            completed = (addFeed)
+                        )
+                        View.ListView(
+                            items = List.map (fun x -> View.TextCell x.title) (Seq.toList model.feeds),
+                            itemSelected = (fun idx ->
+                                match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
+                                | Some item ->
+                                    async {
+                                        let! feedData = item.url |> URL |> Some |> inMemoryDataStorage.Query
+                                        do feedData |> SetCurrentFeed |> dispatch
+                                    } |> Async.StartImmediate
+                                | _ -> ()
+                            )
+                        )
+                    ]
+                )
+            ),
+            detail = feedDetailPage model.currentFeed
         )
-        
 
     let initProgram () =
         let httpClient = new HttpClient()
@@ -123,7 +165,7 @@ type App () as app =
     // Uncomment this line to enable live update in debug mode. 
     // See https://fsprojects.github.io/Fabulous/Fabulous.XamarinForms/tools.html#live-update for further  instructions.
     //
-    //do runner.EnableLiveUpdate()
+    do runner.EnableLiveUpdate()
 #endif    
 
     // Uncomment this code to save the application state to app.Properties using Newtonsoft.Json

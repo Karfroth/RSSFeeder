@@ -74,9 +74,7 @@ let itemCard (feedItem: FeedItem) =
             div [attr.``class`` "card-content"] [
                 div [attr.``class`` "content"] [
                     p [attr.``class`` "card-text"] [
-                        System.Text.RegularExpressions.Regex.Replace(feedItem.summary, "<.*?>", "")
-                        |> System.String.Concat
-                        |> text
+                        text feedItem.summary
                     ]
                 ]
             ]

@@ -14,6 +14,11 @@ module FeedModel
         url: URL
     }
 
+    let removeTag str = 
+        let tagRemoved = System.Text.RegularExpressions.Regex.Replace(str, "<.*?>", "")
+        System.Text.RegularExpressions.Regex.Replace(tagRemoved, "\n\n", "\n")
+        |> System.String.Concat
+
     let getFeedDataAsync (feedSource: RSSFeedDataSource) = 
         async {
             let stringReader = new System.IO.StringReader(feedSource.body)
@@ -24,7 +29,7 @@ module FeedModel
                     for item in syndication.Items do
                         yield {
                             title = item.Title.Text
-                            summary = item.Summary.Text
+                            summary = removeTag item.Summary.Text
                             authors = Seq.map (fun (x: SyndicationPerson) -> x.Name) item.Authors
                             date = item.LastUpdatedTime.Ticks.ToString()
                             links = Seq.map (fun (x: SyndicationLink) -> URL (x.Uri.ToString ())) item.Links
