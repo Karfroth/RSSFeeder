@@ -63,23 +63,31 @@ module App =
         )
 
     let feedDetailPage (currentFeed: FeedData option) = 
-        let title = Option.defaultValue "RSSFeeder" (Option.map (fun x -> x.feedName) currentFeed)
-        let (items, urls) = 
+        let feedCard (x: FeedModel.FeedItem) =
+            let cell = 
+                View.ViewCell(
+                    view = View.StackLayout(
+                        children = [
+                            View.Label(text = x.title, isVisible = true, textColor=Color.Accent, lineBreakMode=LineBreakMode.TailTruncation)
+                            View.Label(text = x.summary, lineBreakMode = LineBreakMode.TailTruncation, maxLines = 3)
+                        ],
+                        margin = Thickness 10.0
+                    )
+                )
+            (cell, Seq.tryHead x.links)
+
+        let onSelected urls idx = 
+            match Option.bind id (Option.bind (fun i -> List.tryItem i urls) idx) with
+            | Some (URL url) -> Async.AwaitTask (Xamarin.Essentials.Browser.OpenAsync(url)) |> Async.StartImmediate
+            | None -> ()
+
+        let (title, items, urls) = 
             match currentFeed with
-                | Some currentFeed ->
-                    let tupled = (List.map (fun (x: FeedModel.FeedItem) -> 
-                        (View.ViewCell(
-                            view = View.StackLayout(
-                                children = [
-                                    View.Label(text = x.title, isVisible = true, textColor=Color.Accent, lineBreakMode=LineBreakMode.TailTruncation)
-                                    View.Label(text = x.summary, lineBreakMode = LineBreakMode.TailTruncation, maxLines = 3)
-                                ],
-                                margin = Thickness 10.0
-                            )
-                        ), Seq.tryHead x.links)
-                    ) (Seq.toList currentFeed.articles))
-                    List.unzip tupled
-                | None -> ([], [])
+                | Some feed -> 
+                    let (items, urls) = List.unzip (List.map feedCard (Seq.toList feed.articles))
+                    (feed.feedName, items, urls)
+                | None -> ("RSSFeeder", [], [])
+
         View.NavigationPage(
             pages=[
                 View.ContentPage(
@@ -90,11 +98,7 @@ module App =
                             View.ListView(
                                 rowHeight = 100,
                                 items = items,
-                                itemSelected = (fun idx -> 
-                                    match Option.bind id (Option.bind (fun i -> List.tryItem i urls) idx) with
-                                    | Some (URL url) -> Async.AwaitTask (Xamarin.Essentials.Browser.OpenAsync(url)) |> Async.StartImmediate
-                                    | None -> ()
-                                )
+                                itemSelected = onSelected urls
                             )
                         ]
                     )
