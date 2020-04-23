@@ -12,6 +12,7 @@ module FeedModel
         feedName: string
         articles: FeedItem seq
         url: URL
+        id: int option
     }
 
     let removeTag str = 
@@ -40,5 +41,6 @@ module FeedModel
                 feedName = syndication.Title.Text
                 url = URL feedSource.url
                 articles = articles
+                id = None
             }
         }

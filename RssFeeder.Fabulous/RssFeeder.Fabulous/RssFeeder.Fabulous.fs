@@ -13,7 +13,10 @@ module App =
     open System.Net.Http
     open IDataManager
     
-    let inMemoryDataStorage = InMemoryDataManager.InMemoryDataManager () :> IDataManager<URL option>
+    let getDataStorage dbPathOpt =
+        match dbPathOpt with
+        | Some dbPath -> SQLiteStorage.SQLiteDataManager (dbPath) :> IDataManager<URL option>
+        | None -> InMemoryDataManager.InMemoryDataManager () :> IDataManager<URL option>
     
     type FeedMetaData = {title: string; url: string}
     
@@ -106,7 +109,7 @@ module App =
             ]
         )
 
-    let view (feedManager: CoreFeedManager<Message>) model dispatch =
+    let view (dataStorage: IDataManager<URL option>) (feedManager: CoreFeedManager<Message>) model dispatch =
         let addFeed _ =
              feedManager.Add dispatch (URL model.urlInput)
              (dispatch << UpdateURL) ""
@@ -128,7 +131,7 @@ module App =
                                 match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
                                 | Some item ->
                                     async {
-                                        let! feedData = item.url |> URL |> Some |> inMemoryDataStorage.Query
+                                        let! feedData = item.url |> URL |> Some |> dataStorage.Query
                                         do feedData |> SetCurrentFeed |> dispatch
                                     } |> Async.StartImmediate
                                 | _ -> ()
@@ -140,7 +143,7 @@ module App =
             detail = feedDetailPage model.currentFeed
         )
 
-    let initProgram () =
+    let program dbPathOpt =
         let httpClient = new HttpClient()
         let receiveFeed (targetURL: URL) =
             let (URL url) = targetURL
@@ -156,16 +159,15 @@ module App =
                 return result
             }
     
-        let feedManager = CoreFeedManager(receiveFeed, inMemoryDataStorage, CoreMsg)
-        Program.mkSimple (fun _ -> init ()) update (view feedManager)
-    // Note, this declaration is needed if you enable LiveUpdate
-    let program = initProgram ()
+        let dataStorage = getDataStorage dbPathOpt
+        let feedManager = CoreFeedManager(receiveFeed, dataStorage, CoreMsg)
+        Program.mkSimple init update (view dataStorage feedManager)
 
-type App () as app = 
+type App (dbPathOpt: string option) as app = 
     inherit Application ()
 
     let runner = 
-        App.program
+        App.program (dbPathOpt)
 #if DEBUG
         |> Program.withConsoleTrace
 #endif

@@ -15,6 +15,11 @@ open Xamarin.Forms.Platform.Android
 [<Activity (Label = "RssFeeder.Fabulous.Android", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = (ConfigChanges.ScreenSize ||| ConfigChanges.Orientation))>]
 type MainActivity() =
     inherit FormsAppCompatActivity()
+
+    let getDbPath() =
+        let path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+        System.IO.Path.Combine(path, "RssFeeder.db3");
+
     override this.OnCreate (bundle: Bundle) =
         FormsAppCompatActivity.TabLayoutResource <- Resources.Layout.Tabbar
         FormsAppCompatActivity.ToolbarResource <- Resources.Layout.Toolbar
@@ -24,7 +29,7 @@ type MainActivity() =
 
         Xamarin.Forms.Forms.Init (this, bundle)
 
-        let appcore  = new RssFeeder.Fabulous.App()
+        let appcore  = new RssFeeder.Fabulous.App(Some (getDbPath ()))
         this.LoadApplication (appcore)
 
     override this.OnRequestPermissionsResult(requestCode: int, permissions: string[], [<GeneratedEnum>] grantResults: Android.Content.PM.Permission[]) =
