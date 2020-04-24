@@ -151,6 +151,9 @@
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="4.7.1" />
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.10" />
+    <PackageReference Include="sqlite-net-pcl">
+      <Version>1.6.292</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RssFeeder.Fabulous\RssFeeder.Fabulous.fsproj">
