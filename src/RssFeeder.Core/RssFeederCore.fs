@@ -14,26 +14,26 @@
         | StopAutoUpdate
 
     type CoreActorEventMsg =
-        | Added of (URL option * string)
-        | Updated of URL option
-        | Removed of URL option
+        | Added of (int option * string * URL)
+        | Updated of int
+        | Removed of int
 
     type ReceiveFeed = URL -> Async<RSSFeedDataSource>
 
-    type CoreFeedManager<'a> (receiveFeed: ReceiveFeed, dataManager: IDataManager<URL option>, box: CoreActorEventMsg -> 'a) =
-        inherit IFeedManager<URL, FeedModel.RSSFeedDataSource, 'a>()
+    type CoreFeedManager<'a> (receiveFeed: ReceiveFeed, dataManager: IDataManager<int>, box: CoreActorEventMsg -> 'a) =
+        inherit IFeedManager<int, FeedModel.URL, 'a>()
 
         override this.Add dispatch url =
             async {
                 let! dataSource = receiveFeed url
                 let! feedData = getFeedDataAsync dataSource
                 let! result = dataManager.Add feedData
-                (Added (result, feedData.feedName)) |> box |> dispatch
+                (Added (result, feedData.feedName, url)) |> box |> dispatch
             } |> Async.StartImmediate
         override this.Remove dispatch key =
             async {
-                do! dataManager.Remove (Some key)
-                (Removed (Some key)) |> box |> dispatch
+                do! dataManager.Remove key
+                (Removed key) |> box |> dispatch
             } |> Async.StartImmediate
         override this.Update dispatch key =
             async { return () } |> ignore

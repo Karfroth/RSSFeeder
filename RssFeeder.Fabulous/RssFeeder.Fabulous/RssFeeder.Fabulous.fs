@@ -18,7 +18,7 @@ module App =
         | Some dbPath -> SQLiteStorage.SQLiteDataManager (dbPath) :> IDataManager<int>
         | None -> InMemoryDataManager.InMemoryDataManager () :> IDataManager<int>
     
-    type FeedMetaData = {title: string; url: string}
+    type FeedMetaData = {title: string; url: string; id: int}
     
     type Message =
         | CoreMsg of CoreActorEventMsg
@@ -37,13 +37,13 @@ module App =
     
     let updateModelWithCoreMsg msg model =
         match msg with
-        | Added (Some (URL url), title) -> 
+        | Added (Some id, title, URL url) -> 
             { 
             model with
                 urlInput = ""
-                feeds = Seq.append model.feeds [{title = title; url = url}]
+                feeds = Seq.append model.feeds [{title = title; url = url; id = id}]
             }
-        | Removed (Some (URL url)) -> { model with feeds = Seq.filter (fun feed -> feed.url <> url) model.feeds }
+        | Removed id -> { model with feeds = Seq.filter (fun feed -> feed.id <> id) model.feeds }
         | _ -> model
     
     let update message model =
@@ -109,7 +109,7 @@ module App =
             ]
         )
 
-    let view (dataStorage: IDataManager<URL option>) (feedManager: CoreFeedManager<Message>) model dispatch =
+    let view (dataStorage: IDataManager<int>) (feedManager: CoreFeedManager<Message>) model dispatch =
         let addFeed _ =
              feedManager.Add dispatch (URL model.urlInput)
              (dispatch << UpdateURL) ""
@@ -131,7 +131,7 @@ module App =
                                 match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
                                 | Some item ->
                                     async {
-                                        let! feedData = item.url |> URL |> Some |> dataStorage.Query
+                                        let! feedData = dataStorage.Query item.id
                                         do feedData |> SetCurrentFeed |> dispatch
                                     } |> Async.StartImmediate
                                 | _ -> ()

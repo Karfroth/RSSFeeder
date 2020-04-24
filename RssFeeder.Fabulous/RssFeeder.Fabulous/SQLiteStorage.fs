@@ -23,8 +23,8 @@ type FeedItem with
 
 let encodeFeedItem (feedItem: FeedItem) =
     Encode.object
-        [ "title", Encode.string "maxime"
-          "summary", Encode.string "mangel"
+        [ "title", Encode.string feedItem.title
+          "summary", Encode.string feedItem.summary
           "authors", Seq.map Encode.string feedItem.authors |> Seq.toList |> Encode.list
           "date", Encode.string feedItem.date
           "links", Seq.map (fun (URL url) -> Encode.string url) feedItem.links |> Seq.toList |> Encode.list
