@@ -7,7 +7,7 @@ open FeedModel
 open Thoth.Json.Net
 // title: string; summary: string; authors: string seq; date: string; links: URL seq
 type FeedItem with
-    static member Decoder: Thoth.Json.Net.Decoder<FeedItem> =
+    static member Decoder: Decoder<FeedItem> =
         Thoth.Json.Net.Decode.object
             (fun get -> 
                 let stringListDecoder = Decode.list Decode.string
@@ -72,62 +72,51 @@ type SQLiteDataManager(dbPath: string) =
         return db
     }
 
-    interface IDataManager<URL option> with
+    interface IDataManager<int> with
         member this.Add (data: FeedModel.FeedData) = async {
             let! db = connect()
             let entity = convertToEntity data
             do! db.InsertAsync(entity) |> Async.AwaitTask |> Async.Ignore
-            return Some data.url
+            let! rowIdObj = db.ExecuteScalarAsync("select last_insert_rowid()", [||]) |> Async.AwaitTask
+            return rowIdObj |> int |> Some
         }
-        member this.Remove (urlOpt: URL option) = 
-            match urlOpt with
-            | Some url -> 
-                async {
-                    let! db = connect ()
-                    do! db.DeleteAsync(url) |> Async.AwaitTask |> Async.Ignore
-                    return ()
-                }
-            | None -> async { return () }
-        member this.Query (urlOpt: URL option) = 
-           match urlOpt with
-           | Some url -> 
-               async {
-                   let! db = connect ()
-                   let! entity =  db.FindAsync<FeedDataEntity>(url) |> Async.AwaitTask
-                   return convertFromEntity entity
-               }
-           | None -> async { return None }
+        member this.Remove (id: int) = 
+            async {
+                let! db = connect ()
+                do! db.DeleteAsync(id) |> Async.AwaitTask |> Async.Ignore
+                return ()
+            }
+        member this.Query (id: int) = 
+           async {
+               let! db = connect ()
+               let! entity =  db.FindAsync<FeedDataEntity>(id) |> Async.AwaitTask
+               return convertFromEntity entity
+           }
         member this.QueryKeys () =
             async {
                 let! db = connect ()
                 let! items = db.Table<FeedDataEntity>().ToArrayAsync() |> Async.AwaitTask
-                return Seq.map (fun (x: FeedDataEntity) -> (Some << URL) x.Url) items
+                return Seq.map (fun (x: FeedDataEntity) -> x.Id) items
             }
-        member this.Update urlOpt feedData =
-            match urlOpt with
-            | Some _ -> 
+        member this.Update id feedData =
+            let entity = convertToEntity feedData
+            if entity.Id <> 0
+            then 
                 async {
                     let! db = connect()
-                    let entity = convertToEntity feedData
+                    
                     do! db.UpdateAsync entity |> Async.AwaitTask |> Async.Ignore
                     return ()
                 }
-            | None -> async { return () }
+            else async { return () }
         member this.QueryList keys =
-            let validKeys = seq {
-                for key in keys do
-                    yield!
-                        match key with
-                        | Some (URL url) -> seq {url}
-                        | None -> Seq.empty
-            }
             async {
                 let! db = connect ()
                 // TODO: Don't do this way
                 let! allItems = db.Table<FeedDataEntity>().ToArrayAsync() |> Async.AwaitTask
                 return seq {
                     for entity in allItems do
-                        let convertResult = if Seq.contains entity.Url validKeys then convertFromEntity entity else None
+                        let convertResult = if Seq.contains entity.Id keys then convertFromEntity entity else None
                         match convertResult with
                         | Some value -> yield value
                         | None -> ()

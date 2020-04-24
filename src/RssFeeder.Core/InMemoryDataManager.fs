@@ -3,66 +3,111 @@ module InMemoryDataManager
     open FeedModel
     
     type InMemoryDataManagerCmd =
-    | Add of FeedData * AsyncReplyChannel<URL option>
-    | Remove of URL * AsyncReplyChannel<unit>
-    | Query of URL * AsyncReplyChannel<FeedData option>
-    | QueryKeys of AsyncReplyChannel<URL option seq>
-    | Update of URL * FeedData * AsyncReplyChannel<unit>
-    | QueryList of URL option seq * AsyncReplyChannel<FeedData seq>
+    | Add of FeedData * AsyncReplyChannel<int option>
+    | Remove of int * AsyncReplyChannel<unit>
+    | Query of int * AsyncReplyChannel<FeedData option>
+    | QueryKeys of AsyncReplyChannel<int seq>
+    | Update of int * FeedData * AsyncReplyChannel<unit>
+    | QueryList of int seq * AsyncReplyChannel<FeedData seq>
 
     type InMemoryDataManager () =
 
         let dataProcessor = MailboxProcessor.Start(fun inbox ->
-            let rec loop (data: Map<URL, FeedData>) =
+            let rec loop (data: FeedData array) =
                 async { 
                     match! inbox.Receive() with
                     | Add (feedData, replyChannel) ->
-                        let newData = Map.add feedData.url feedData data
-                        replyChannel.Reply (Some feedData.url)
+                        let ids = seq {
+                            for feedData in data do
+                                match feedData.id with
+                                | Some id -> yield! [|id|]
+                                | None -> yield! [||]
+                        }
+                        let currentID = Some (Seq.last (Seq.sort ids) + 1)
+                        let newData = Array.append data [|{ feedData with id = currentID}|]
+                        replyChannel.Reply currentID
                         return! loop newData                        
-                    | Remove (url, replyChannel) ->
-                        let newData = Map.remove url data
+                    | Remove (id, replyChannel) ->
+                        let filter = Array.filter (fun x -> 
+                            match x.id with
+                            | Some dataId -> dataId <> id
+                            | None -> false
+                        )
+                        let newData = filter data
                         replyChannel.Reply ()
                         return! loop newData
-                    | Query (url, replyChannel) ->
-                        replyChannel.Reply (Map.tryFind url data)
+                    | Query (id, replyChannel) ->
+                        let find = Array.tryFind (fun x -> 
+                            match x.id with
+                            | Some dataId -> dataId = id
+                            | None -> false
+                        )
+                        replyChannel.Reply (find data)
                         return! loop data
                     | QueryKeys replyChannel ->
-                        replyChannel.Reply (Seq.map (fun (k, _) -> Some k) (Map.toSeq data))
+                        replyChannel.Reply (seq {
+                            for feedData in data do
+                                match feedData.id with
+                                | Some i -> yield! [|i|]
+                                | None -> yield! [||]
+                        })
                         return! loop data
-                    | Update (url, feedData, replyChannel) ->
-                        let newData = Map.add url feedData data
+                    | Update (id, feedData, replyChannel) ->
+                        let find = Array.tryFind (fun x -> 
+                            match x.id with
+                            | Some dataId -> dataId = id
+                            | None -> false
+                        )
+                        let existFeedData = find data
+                        let updatedData = 
+                            Option.map 
+                                (fun (oldFeedData: FeedData) ->
+                                    let newArticles = 
+                                        Seq.fold
+                                            (fun (acc: FeedItem seq) feedItem ->
+                                                let findResult = 
+                                                    Seq.tryFind
+                                                        (fun (x: FeedItem) -> x.title = feedItem.title)
+                                                        acc
+                                                match findResult with
+                                                | Some result -> acc
+                                                | None -> Seq.append acc (seq { feedItem })
+                                            ) Seq.empty (Seq.append oldFeedData.articles feedData.articles)
+                                    seq { { oldFeedData with articles = newArticles } }
+                                )
+                                existFeedData
+                        let filter = Array.filter (fun x -> 
+                            match x.id with
+                            | Some dataId -> dataId <> id
+                            | None -> false
+                        )
+                        let newData = filter data |> Seq.append (Option.defaultValue Seq.empty updatedData) |> Seq.toArray
                         replyChannel.Reply ()
                         return! loop newData
-                    | QueryList (urls, replyChannel) ->
-                        let toReply = seq {
-                            for key in urls do
-                                yield!
-                                    match Option.bind(fun k -> Map.tryFind k data) key with
-                                    | Some feedData -> [feedData]
-                                    | None -> []                           
-                        }
+                    | QueryList (ids, replyChannel) ->
+                        let toReply = 
+                            Seq.filter
+                                (fun x -> 
+                                    match x.id with
+                                    | Some i -> Seq.contains i ids
+                                    | None -> false
+                                )
+                                data
                         replyChannel.Reply toReply
                         return! loop data
                 }
-            loop Map.empty)
+            loop Array.empty)
 
-        interface IDataManager<URL option> with
+        interface IDataManager<int> with
             member this.Add feedData = 
                 dataProcessor.PostAndAsyncReply(fun rc -> Add(feedData, rc) )
             member this.Remove key =
-                match key with
-                | Some k -> dataProcessor.PostAndAsyncReply(fun rc -> Remove(k, rc) )
-                | _ -> async { return () }
+                dataProcessor.PostAndAsyncReply(fun rc -> Remove(key, rc) )
             member this.Query key =
-               match key with
-                | Some k -> dataProcessor.PostAndAsyncReply(fun rc -> Query(k, rc) )
-                | _ -> async { return None }
+               dataProcessor.PostAndAsyncReply(fun rc -> Query(key, rc) )
             member this.QueryKeys () =
                 dataProcessor.PostAndAsyncReply QueryKeys
             member this.Update key feedData =
-                match key with
-                | Some k -> dataProcessor.PostAndAsyncReply(fun rc -> Update (k, feedData, rc) )
-                | _ -> async { return () }
+                dataProcessor.PostAndAsyncReply(fun rc -> Update (key, feedData, rc) )
             member this.QueryList keys =
                 dataProcessor.PostAndAsyncReply(fun rc -> QueryList(keys, rc))

@@ -15,8 +15,8 @@ module App =
     
     let getDataStorage dbPathOpt =
         match dbPathOpt with
-        | Some dbPath -> SQLiteStorage.SQLiteDataManager (dbPath) :> IDataManager<URL option>
-        | None -> InMemoryDataManager.InMemoryDataManager () :> IDataManager<URL option>
+        | Some dbPath -> SQLiteStorage.SQLiteDataManager (dbPath) :> IDataManager<int>
+        | None -> InMemoryDataManager.InMemoryDataManager () :> IDataManager<int>
     
     type FeedMetaData = {title: string; url: string}
     
