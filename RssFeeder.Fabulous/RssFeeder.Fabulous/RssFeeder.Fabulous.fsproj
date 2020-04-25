@@ -12,8 +12,8 @@
   <ItemGroup>
     <PackageReference Include="sqlite-net-pcl" Version="1.6.292" />
     <PackageReference Include="Thoth.Json.Net" Version="4.0.0" />
-    <PackageReference Include="Xamarin.Forms" Version="4.5.0.617" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.5.1" />
+    <PackageReference Include="Xamarin.Forms" Version="4.5.0.657" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.5.3.1" />
     <PackageReference Include="Fabulous.XamarinForms" Version="0.53.2" />
     <PackageReference Include="Fabulous.XamarinForms.LiveUpdate" Version="0.53.2" />
     <PackageReference Include="FSharp.Core" Version="4.7.1" />

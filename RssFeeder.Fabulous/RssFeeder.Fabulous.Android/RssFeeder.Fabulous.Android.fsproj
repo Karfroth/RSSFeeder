@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Xamarin.Forms.4.5.0.617\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.4.5.0.617\build\Xamarin.Forms.props')" />
+  <Import Project="..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -92,7 +92,7 @@
   <Import Project="..\packages\Xamarin.Android.Support.v7.AppCompat.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.v7.AppCompat.targets" Condition="Exists('..\packages\Xamarin.Android.Support.v7.AppCompat.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.v7.AppCompat.targets')" />
   <Import Project="..\packages\Xamarin.Android.Support.Design.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.Design.targets" Condition="Exists('..\packages\Xamarin.Android.Support.Design.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.Design.targets')" />
   <Import Project="..\packages\Xamarin.Android.Support.v7.MediaRouter.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.v7.MediaRouter.targets" Condition="Exists('..\packages\Xamarin.Android.Support.v7.MediaRouter.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.v7.MediaRouter.targets')" />
-  <Import Project="..\packages\Xamarin.Forms.4.5.0.617\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.4.5.0.617\build\Xamarin.Forms.targets')" />
+  <Import Project="..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.targets')" />
   <Import Project="..\.nuget\NuGet.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -119,6 +119,8 @@
     <Error Condition="!Exists('..\packages\Xamarin.Android.Support.Design.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.Design.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Android.Support.Design.28.0.0.3\build\MonoAndroid81\Xamarin.Android.Support.Design.targets'))" />
     <Error Condition="!Exists('..\packages\Xamarin.Android.Support.v7.MediaRouter.28.0.0.3\build\MonoAndroid90\Xamarin.Android.Support.v7.MediaRouter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Android.Support.v7.MediaRouter.28.0.0.3\build\MonoAndroid81\Xamarin.Android.Support.v7.MediaRouter.targets'))" />
     <Error Condition="!Exists('..\packages\Xamarin.Android.Arch.Lifecycle.LiveData.1.1.1.3\build\monoandroid90\Xamarin.Android.Arch.Lifecycle.LiveData.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Android.Arch.Lifecycle.LiveData.1.1.1.3\build\monoandroid90\Xamarin.Android.Arch.Lifecycle.LiveData.targets'))" />
+    <Error Condition="!Exists('..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.props'))" />
+    <Error Condition="!Exists('..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Forms.4.5.0.657\build\Xamarin.Forms.targets'))" />
   </Target>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
@@ -314,19 +316,19 @@
       <HintPath>..\packages\Xamarin.Android.Support.Vector.Drawable.28.0.0.3\lib\MonoAndroid90\Xamarin.Android.Support.Vector.Drawable.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Core">
-      <HintPath>..\packages\Xamarin.Forms.4.5.0.617\lib\MonoAndroid90\Xamarin.Forms.Core.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.5.0.657\lib\MonoAndroid90\Xamarin.Forms.Core.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Platform">
-      <HintPath>..\packages\Xamarin.Forms.4.5.0.617\lib\MonoAndroid90\Xamarin.Forms.Platform.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.5.0.657\lib\MonoAndroid90\Xamarin.Forms.Platform.dll</HintPath>
     </Reference>
     <Reference Include="FormsViewGroup">
-      <HintPath>..\packages\Xamarin.Forms.4.5.0.617\lib\MonoAndroid90\FormsViewGroup.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.5.0.657\lib\MonoAndroid90\FormsViewGroup.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Platform.Android">
-      <HintPath>..\packages\Xamarin.Forms.4.5.0.617\lib\MonoAndroid90\Xamarin.Forms.Platform.Android.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.5.0.657\lib\MonoAndroid90\Xamarin.Forms.Platform.Android.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Xaml">
-      <HintPath>..\packages\Xamarin.Forms.4.5.0.617\lib\MonoAndroid90\Xamarin.Forms.Xaml.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Forms.4.5.0.657\lib\MonoAndroid90\Xamarin.Forms.Xaml.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.7.1\lib\netstandard2.0\FSharp.Core.dll</HintPath>
@@ -335,7 +337,7 @@
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Essentials">
-      <HintPath>..\packages\Xamarin.Essentials.1.5.1\lib\monoandroid90\Xamarin.Essentials.dll</HintPath>
+      <HintPath>..\packages\Xamarin.Essentials.1.5.3.1\lib\monoandroid90\Xamarin.Essentials.dll</HintPath>
     </Reference>
     <ProjectReference Include="..\RssFeeder.Fabulous\RssFeeder.Fabulous.fsproj">
       <Project>{EBE82B04-C394-4F00-A304-4DCDB8F114A6}</Project>

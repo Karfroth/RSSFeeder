@@ -24,7 +24,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <PackageReference Include="FSharp.Core" Version="4.7.1" />
-    <PackageReference Include="Xamarin.Forms.Platform.WPF" Version="4.5.0.617" />
+    <PackageReference Include="Xamarin.Forms.Platform.WPF" Version="4.5.0.657" />
     <ProjectReference Include="../RssFeeder.Fabulous/RssFeeder.Fabulous.fsproj" />
   </ItemGroup>
 </Project>
