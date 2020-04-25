@@ -25,6 +25,7 @@ module App =
         | UpdateURL of string
         | FeedString of string
         | SetCurrentFeed of FeedModel.FeedData option
+        | Initialization of FeedMetaData seq
     
     type Model = {
         feeds: FeedMetaData seq
@@ -33,7 +34,17 @@ module App =
         currentFeed: FeedModel.FeedData option
     }
 
-    let init () = {feeds = Seq.empty; urlInput = ""; feedString = ""; currentFeed = None}
+    let init (dataStorage: IDataManager<int>) () =
+        let feedMetaDataSeq = async {
+            let! allData = dataStorage.QueryAll ()
+            return Initialization (seq {
+                for data in allData do
+                    match (data.url, data.id) with
+                    | (URL url, Some id) -> yield {title = data.feedName; id = id; url = url}
+                    | _ -> ()
+            })
+        }
+        {feeds = Seq.empty; urlInput = ""; feedString = ""; currentFeed = None}, Cmd.ofAsyncMsg feedMetaDataSeq
     
     let updateModelWithCoreMsg msg model =
         match msg with
@@ -48,10 +59,11 @@ module App =
     
     let update message model =
         match message with
-        | UpdateURL updatedURL-> { model with urlInput = updatedURL }
-        | CoreMsg msg -> updateModelWithCoreMsg msg model
-        | FeedString str -> { model with feedString = str }
-        | SetCurrentFeed feedData -> {model with currentFeed = feedData}
+        | UpdateURL updatedURL-> { model with urlInput = updatedURL }, Cmd.none
+        | CoreMsg msg -> updateModelWithCoreMsg msg model, Cmd.none
+        | FeedString str -> { model with feedString = str }, Cmd.none
+        | SetCurrentFeed feedData -> { model with currentFeed = feedData }, Cmd.none
+        | Initialization feedData -> { model with feeds = feedData }, Cmd.none
     
     let feedsPage feeds = 
         View.ContentPage(
@@ -161,7 +173,7 @@ module App =
     
         let dataStorage = getDataStorage dbPathOpt
         let feedManager = CoreFeedManager(receiveFeed, dataStorage, CoreMsg)
-        Program.mkSimple init update (view dataStorage feedManager)
+        Program.mkProgram (init dataStorage) update (view dataStorage feedManager)
 
 type App (dbPathOpt: string option) as app = 
     inherit Application ()
