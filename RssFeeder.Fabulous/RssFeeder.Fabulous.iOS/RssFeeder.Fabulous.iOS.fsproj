@@ -147,6 +147,15 @@
     </ImageAsset>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Fabulous">
+      <HintPath>..\packages\Fabulous.0.53.2\lib\netstandard2.0\Fabulous.dll</HintPath>
+    </Reference>
+    <Reference Include="Fabulous.LiveUpdate">
+      <HintPath>..\packages\Fabulous.LiveUpdate.0.53.2\lib\netstandard2.0\Fabulous.LiveUpdate.dll</HintPath>
+    </Reference>
+    <Reference Include="Fabulous.XamarinForms.LiveUpdate">
+      <HintPath>..\packages\Fabulous.XamarinForms.LiveUpdate.0.53.2\lib\netstandard2.0\Fabulous.XamarinForms.LiveUpdate.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -171,17 +180,8 @@
     <Reference Include="Xamarin.Essentials">
       <HintPath>..\packages\Xamarin.Essentials.1.5.1\lib\monoandroid71\Xamarin.Essentials.dll</HintPath>
     </Reference>
-    <Reference Include="Fabulous">
-      <HintPath>..\packages\Fabulous.0.53.0\lib\netstandard2.0\Fabulous.dll</HintPath>
-    </Reference>
-    <Reference Include="Fabulous.LiveUpdate">
-      <HintPath>..\packages\Fabulous.LiveUpdate.0.53.0\lib\netstandard2.0\Fabulous.LiveUpdate.dll</HintPath>
-    </Reference>
     <Reference Include="Fabulous.XamarinForms">
       <HintPath>..\packages\Fabulous.XamarinForms.0.53.0\lib\netstandard2.0\Fabulous.XamarinForms.dll</HintPath>
-    </Reference>
-    <Reference Include="Fabulous.XamarinForms.LiveUpdate">
-      <HintPath>..\packages\Fabulous.XamarinForms.LiveUpdate.0.53.0\lib\netstandard2.0\Fabulous.XamarinForms.LiveUpdate.dll</HintPath>
     </Reference>
     <ProjectReference Include="..\RssFeeder.Fabulous\RssFeeder.Fabulous.fsproj">
       <Project>{EBE82B04-C394-4F00-A304-4DCDB8F114A6}</Project>
