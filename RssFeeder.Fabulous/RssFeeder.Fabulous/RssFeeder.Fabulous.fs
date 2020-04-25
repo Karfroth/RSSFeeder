@@ -125,6 +125,19 @@ module App =
         let addFeed _ =
              feedManager.Add dispatch (URL model.urlInput)
              (dispatch << UpdateURL) ""
+        let feeds = 
+            View.ListView(
+                items = List.map (fun x -> View.TextCell x.title) (Seq.toList model.feeds),
+                itemSelected = (fun idx ->
+                    match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
+                    | Some item ->
+                        async {
+                            let! feedData = dataStorage.Query item.id
+                            do feedData |> SetCurrentFeed |> dispatch
+                        } |> Async.StartImmediate
+                    | _ -> ()
+                )
+            )
         View.MasterDetailPage(
             masterBehavior = MasterBehavior.Default,
             master = View.ContentPage(
@@ -137,18 +150,7 @@ module App =
                             textChanged = (fun t -> (dispatch << UpdateURL) t.NewTextValue),
                             completed = (addFeed)
                         )
-                        View.ListView(
-                            items = List.map (fun x -> View.TextCell x.title) (Seq.toList model.feeds),
-                            itemSelected = (fun idx ->
-                                match Option.bind (fun i -> Seq.tryItem i model.feeds) idx with
-                                | Some item ->
-                                    async {
-                                        let! feedData = dataStorage.Query item.id
-                                        do feedData |> SetCurrentFeed |> dispatch
-                                    } |> Async.StartImmediate
-                                | _ -> ()
-                            )
-                        )
+                        feeds
                     ]
                 )
             ),
