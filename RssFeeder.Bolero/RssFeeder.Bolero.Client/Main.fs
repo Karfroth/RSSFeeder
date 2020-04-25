@@ -10,9 +10,9 @@ open Microsoft.AspNetCore.Components
 open System.Net.Http
 open IDataManager
 
-let inMemoryDataStorage = InMemoryDataManager.InMemoryDataManager () :> IDataManager<URL option>
+let inMemoryDataStorage = InMemoryDataManager.InMemoryDataManager () :> IDataManager<int>
 
-type FeedMetaData = {title: string; url: string}
+type FeedMetaData = {title: string; url: string; id: int}
 
 type Message =
     | CoreMsg of CoreActorEventMsg
@@ -32,13 +32,13 @@ let init () = {feeds = Seq.empty; urlInput = ""; feedString = ""; currentFeed = 
 
 let updateModelWithCoreMsg msg model =
     match msg with
-    | Added (Some (URL url), title) -> 
+    | Added (Some id, title, (URL url)) -> 
         { 
         model with
             urlInput = ""
-            feeds = Seq.append model.feeds [{title = title; url = url}]
+            feeds = Seq.append model.feeds [{title = title; url = url; id = id}]
         }
-    | Removed (Some (URL url)) -> { model with feeds = Seq.filter (fun feed -> feed.url <> url) model.feeds }
+    | Removed id -> { model with feeds = Seq.filter (fun feed -> feed.id <> id) model.feeds }
     | _ -> model
 
 let update message model =
@@ -56,7 +56,7 @@ let feedMenu dispatch (feedData: FeedMetaData seq) =
                     li [] [
                         a [on.click (fun _ -> 
                             async {
-                                let! feedData = data.url |> URL |> Some |> inMemoryDataStorage.Query
+                                let! feedData = inMemoryDataStorage.Query data.id
                                 do feedData |> SetCurrentFeed |> dispatch
                             } |> Async.StartImmediate
                         )] [text data.title]

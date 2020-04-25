@@ -17,6 +17,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.2.0-preview3.20168.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RssFeeder.Core\RssFeeder.Core.fsproj" />
+    <ProjectReference Include="..\..\RssFeeder.Core\RssFeeder.Core\RssFeeder.Core.fsproj" />
   </ItemGroup>
 </Project>

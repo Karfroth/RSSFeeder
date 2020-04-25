@@ -21,6 +21,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RssFeeder.Core\RssFeeder.Core.fsproj" />
+    <ProjectReference Include="..\..\RssFeeder.Core\RssFeeder.Core\RssFeeder.Core.fsproj" />
   </ItemGroup>
 </Project>

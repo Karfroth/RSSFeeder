@@ -14,7 +14,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "RssFeeder.Fabulous.WPF", "R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RssFeeder.Fabulous.UWP", "RssFeeder.Fabulous.UWP\RssFeeder.Fabulous.UWP.csproj", "{85F7AE84-A53D-42C7-89F3-8EB0EC03ACF9}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "RssFeeder.Core", "..\src\RssFeeder.Core\RssFeeder.Core.fsproj", "{B1C1C07B-BA97-43D2-9371-C0CE46E5EBB8}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "RssFeeder.Core", "..\RssFeeder.Core\RssFeeder.Core\RssFeeder.Core.fsproj", "{B1C1C07B-BA97-43D2-9371-C0CE46E5EBB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
