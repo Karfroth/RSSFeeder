@@ -23,7 +23,13 @@ module InMemoryDataManager
                                 | Some id -> yield! [|id|]
                                 | None -> yield! [||]
                         }
-                        let currentID = Some (Seq.last (Seq.sort ids) + 1)
+                        // Weird code for WASM
+                        let sorted = Seq.sort ids
+                        let greatestIDOpt = Seq.tryItem (Seq.length sorted - 1) sorted
+                        let currentID =
+                            greatestIDOpt
+                            |> Option.map (fun id -> id + 1)
+                            |> Option.orElse (Some 1)
                         let newData = Array.append data [|{ feedData with id = currentID}|]
                         replyChannel.Reply currentID
                         return! loop newData                        
