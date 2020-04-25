@@ -74,7 +74,7 @@ type SQLiteDataManager(dbPath: string) =
 
     interface IDataManager<int> with
         member this.Add (data: FeedModel.FeedData) = async {
-            let! db = connect()
+            let! db = connect ()
             let entity = convertToEntity data
             do! db.InsertAsync(entity) |> Async.AwaitTask |> Async.Ignore
             let! rowIdObj = db.ExecuteScalarAsync("select last_insert_rowid()", [||]) |> Async.AwaitTask
