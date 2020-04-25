@@ -6,7 +6,7 @@ module InMemoryDataManager
     | Add of FeedData * AsyncReplyChannel<int option>
     | Remove of int * AsyncReplyChannel<unit>
     | Query of int * AsyncReplyChannel<FeedData option>
-    | QueryKeys of AsyncReplyChannel<int seq>
+    | QueryAll of AsyncReplyChannel<FeedData seq>
     | Update of int * FeedData * AsyncReplyChannel<unit>
     | QueryList of int seq * AsyncReplyChannel<FeedData seq>
 
@@ -44,13 +44,8 @@ module InMemoryDataManager
                         )
                         replyChannel.Reply (find data)
                         return! loop data
-                    | QueryKeys replyChannel ->
-                        replyChannel.Reply (seq {
-                            for feedData in data do
-                                match feedData.id with
-                                | Some i -> yield! [|i|]
-                                | None -> yield! [||]
-                        })
+                    | QueryAll replyChannel ->
+                        replyChannel.Reply (data)
                         return! loop data
                     | Update (id, feedData, replyChannel) ->
                         let find = Array.tryFind (fun x -> 
@@ -105,8 +100,8 @@ module InMemoryDataManager
                 dataProcessor.PostAndAsyncReply(fun rc -> Remove(key, rc) )
             member this.Query key =
                dataProcessor.PostAndAsyncReply(fun rc -> Query(key, rc) )
-            member this.QueryKeys () =
-                dataProcessor.PostAndAsyncReply QueryKeys
+            member this.QueryAll () =
+                dataProcessor.PostAndAsyncReply QueryAll
             member this.Update key feedData =
                 dataProcessor.PostAndAsyncReply(fun rc -> Update (key, feedData, rc) )
             member this.QueryList keys =

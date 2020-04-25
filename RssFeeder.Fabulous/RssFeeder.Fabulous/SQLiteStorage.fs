@@ -92,11 +92,17 @@ type SQLiteDataManager(dbPath: string) =
                let! entity =  db.FindAsync<FeedDataEntity>(id) |> Async.AwaitTask
                return convertFromEntity entity
            }
-        member this.QueryKeys () =
+        member this.QueryAll () =
             async {
                 let! db = connect ()
                 let! items = db.Table<FeedDataEntity>().ToArrayAsync() |> Async.AwaitTask
-                return Seq.map (fun (x: FeedDataEntity) -> x.Id) items
+                return seq {
+                    for entityData in items do
+                        yield!
+                            match convertFromEntity entityData with
+                            | Some data -> seq { data }
+                            | None -> Seq.empty
+                }
             }
         member this.Update id feedData =
             let entity = convertToEntity feedData
