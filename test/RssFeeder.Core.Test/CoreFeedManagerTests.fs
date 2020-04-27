@@ -26,7 +26,7 @@ let ``Add works`` () =
     let body = readRSSFromResource "typelevel.rss"
     let feedManager = before (fun _ -> async { return {|url = url; body = body|}})
     let testMsg msg =
-        msg |> should equal (Added ((Some << URL) url))
+        msg |> should equal (Added (Some 1, "Typelevel.scal", URL url))
     feedManager.Add testMsg (URL url)
 
 [<Fact>]
@@ -35,8 +35,8 @@ let ``Remove works`` () =
     let body = readRSSFromResource "typelevel.rss"
     let feedManager = before (fun _ -> async { return {|url = url; body = body|}})
     let testMsg msg =
-        msg |> should equal (Removed ((Some << URL) url))
-    feedManager.Remove testMsg (URL url)
+        msg |> should equal (Removed 1)
+    feedManager.Remove testMsg 1
 
 // TODO: Enable again
 // [<Fact>]
