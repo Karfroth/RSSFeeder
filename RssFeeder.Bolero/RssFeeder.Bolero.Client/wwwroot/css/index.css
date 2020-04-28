@@ -23,3 +23,15 @@ body {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
 }
+
+.card-header-title {
+  height: 4rem;
+  line-height: 3rem;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}

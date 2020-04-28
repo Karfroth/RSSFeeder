@@ -66,20 +66,25 @@ let feedMenu dispatch (feedData: FeedMetaData seq) =
         ]
 
 let itemCard (feedItem: FeedItem) =
-    div [attr.``class`` "column is-one-third" ] [
-        div [ attr.``class`` "card" ] [
-            header [attr.``class`` "card-header"] [
-                p [attr.``class`` "card-header-title"] [ text feedItem.title ]
-            ]
-            div [attr.``class`` "card-content"] [
-                div [attr.``class`` "content"] [
-                    p [attr.``class`` "card-text"] [
-                        text feedItem.summary
+    match Seq.tryHead feedItem.links with
+    | Some (URL url) ->
+        div [attr.``class`` "column is-one-third" ] [
+            div [ attr.``class`` "card" ] [
+                header [attr.``class`` "card-header"] [
+                    p [attr.``class`` "card-header-title"] [ 
+                        a [attr.href url; attr.target "_blank"] [text feedItem.title] 
+                    ]
+                ]
+                div [attr.``class`` "card-content"] [
+                    div [attr.``class`` "content"] [
+                        p [attr.``class`` "card-text"] [
+                            text feedItem.summary
+                        ]
                     ]
                 ]
             ]
         ]
-    ]
+    | _ -> empty    
 
 let view (feedManager: CoreFeedManager<Message>) model dispatch =
     div [ attr.``class`` "columns" ] [
